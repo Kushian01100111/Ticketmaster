@@ -16,6 +16,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	db, err := connectDB(config.DSN)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
 	addr := flag.String("addr", ":"+config.Port, "HTTP network address")
 
 	r := NewHandler(config)

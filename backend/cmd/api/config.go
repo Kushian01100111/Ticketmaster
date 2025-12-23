@@ -7,6 +7,7 @@ import (
 )
 
 type Config struct {
+	DSN       string
 	GinConfig string
 	Port      string
 }
@@ -18,6 +19,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &Config{
+		DSN:       getEnv("DB_URL", ""),
 		GinConfig: getEnv("GIN_MODE", "debug"),
 		Port:      getEnv("PORT", "8080"),
 	}, nil
