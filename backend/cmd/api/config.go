@@ -19,7 +19,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		DSN:       getEnv("DB_URL", ""),
+		DSN:       getEnv("DB_URI", ""),
 		GinConfig: getEnv("GIN_MODE", "debug"),
 		Port:      getEnv("PORT", "8080"),
 	}, nil

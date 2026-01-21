@@ -16,7 +16,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	db, err := connectDB(config.DSN)
+	_, err = connectDB(config.DSN)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
