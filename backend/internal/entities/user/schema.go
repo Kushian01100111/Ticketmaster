@@ -22,7 +22,7 @@ func EnsureVenueCollection(ctx context.Context, db *mongo.Database) error {
 				{Key: "required", Value: bson.A{"address", "capacity"}},
 				{Key: "properties", Value: bson.D{
 					{Key: "address", Value: bson.D{{Key: "bsonType", Value: "string"}}},
-					{Key: "capacity", Value: bson.D{{Key: "bsonType", Value: "int32"}}},
+					{Key: "capacity", Value: bson.D{{Key: "bsonType", Value: "int"}}},
 				}},
 			},
 		}}

@@ -8,43 +8,65 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-func EnsureVenueCollection(ctx context.Context, db *mongo.Database) error {
-	existing, err := db.ListCollectionNames(ctx, bson.D{{Key: "name", Value: "venue"}})
+func ticketSchema() bson.D {
+	statusSchema := bson.D{
+		{Key: "bsonType", Value: "string"},
+		{Key: "enum", Value: bson.A{"hold", "available", "sold"}},
+	}
+
+	seatSchema := bson.D{
+		{Key: "bsonType", Value: "object"},
+		{Key: "required", Value: bson.A{"section", "row", "number"}},
+		{Key: "properties", Value: bson.D{
+			{Key: "section", Value: bson.D{{Key: "bsonType", Value: "string"}}},
+			{Key: "row", Value: bson.D{{Key: "bsonType", Value: "number"}}},
+			{Key: "number", Value: bson.D{{Key: "bsonType", Value: "int"}}},
+		}},
+	}
+
+	return bson.D{{
+		Key: "$jsonSchema",
+		Value: bson.D{
+			{Key: "bsonType", Value: "object"},
+			{Key: "required", Value: bson.A{"userId", "eventId", "price", "status", "seatData"}},
+			{Key: "properties", Value: bson.D{
+				{Key: "_id", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+
+				{Key: "userId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+				{Key: "eventId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+
+				{Key: "price", Value: bson.D{{Key: "bsonType", Value: "decimal128"}}},
+				{Key: "status", Value: statusSchema},
+				{Key: "seatData", Value: seatSchema},
+			}},
+		},
+	}}
+}
+
+func EnsureTicketCollection(ctx context.Context, db *mongo.Database) error {
+	existing, err := db.ListCollectionNames(ctx, bson.D{{Key: "name", Value: "ticket"}})
 	if err != nil {
 		return err
 	}
 
-	if len(existing) == 0 {
-		validator := bson.D{{
-			Key: "$jsonSchema",
-			Value: bson.D{
-				{Key: "bsonType", Value: "object"},
-				{Key: "required", Value: bson.A{"address", "capacity"}},
-				{Key: "properties", Value: bson.D{
-					{Key: "address", Value: bson.D{{Key: "bsonType", Value: "string"}}},
-					{Key: "capacity", Value: bson.D{{Key: "bsonType", Value: "int32"}}},
-				}},
-			},
-		}}
+	validator := ticketSchema()
 
+	if len(existing) == 0 {
 		opts := options.CreateCollection().
 			SetValidator(validator).
 			SetValidationAction("error").
 			SetValidationLevel("strict")
 
-		if err := db.CreateCollection(ctx, "venue", opts); err != nil {
+		if err := db.CreateCollection(ctx, "ticket", opts); err != nil {
 			return err
 		}
 	}
 
-	coll := db.Collection("venue")
+	coll := db.Collection("ticket")
 	_, err = coll.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys:    bson.D{{Key: "address", Value: 1}},
-			Options: options.Index().SetUnique(true),
-		},
-		{
-			Keys: bson.D{{Key: "capacity", Value: 1}},
+			Keys:    bson.D{{Key: "status", Value: 1}},
+			Options: options.Index().SetName("idx_status"),
 		},
 	})
 
