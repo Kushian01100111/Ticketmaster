@@ -1,4 +1,4 @@
-package user
+package venue
 
 import (
 	"context"
@@ -7,6 +7,29 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
+
+func UpdateVenueCollection(ctx context.Context, db *mongo.Database) error {
+	validator := bson.D{{
+		Key: "$jsonSchema",
+		Value: bson.D{
+			{Key: "bsonType", Value: "object"},
+			{Key: "required", Value: bson.A{"address", "capacity"}},
+			{Key: "properties", Value: bson.D{
+				{Key: "address", Value: bson.D{{Key: "bsonType", Value: "string"}}},
+				{Key: "capacity", Value: bson.D{{Key: "bsonType", Value: "int"}}},
+			}},
+		},
+	}}
+
+	cmd := bson.D{
+		{Key: "collMod", Value: "user"},
+		{Key: "validator", Value: validator},
+		{Key: "validationLevel", Value: "strict"},
+		{Key: "validationAction", Value: "error"},
+	}
+
+	return db.RunCommand(ctx, cmd).Err()
+}
 
 func EnsureVenueCollection(ctx context.Context, db *mongo.Database) error {
 	existing, err := db.ListCollectionNames(ctx, bson.D{{Key: "name", Value: "venue"}})

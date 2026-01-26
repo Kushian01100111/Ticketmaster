@@ -45,6 +45,19 @@ func bookingSchema() bson.D {
 	}}
 }
 
+func UpdateBookingCollection(ctx context.Context, db *mongo.Database) error {
+	validator := bookingSchema()
+
+	cmd := bson.D{
+		{Key: "collMod", Value: "booking"},
+		{Key: "validator", Value: validator},
+		{Key: "validationLevel", Value: "strict"},
+		{Key: "validationAction", Value: "error"},
+	}
+
+	return db.RunCommand(ctx, cmd).Err()
+}
+
 func EnsureBookingCollection(ctx context.Context, db *mongo.Database) error {
 	existing, err := db.ListCollectionNames(ctx, bson.D{{Key: "name", Value: "booking"}})
 	if err != nil {

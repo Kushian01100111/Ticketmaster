@@ -43,6 +43,19 @@ func ticketSchema() bson.D {
 	}}
 }
 
+func UpdateTicketCollection(ctx context.Context, db *mongo.Database) error {
+	validator := ticketSchema()
+
+	cmd := bson.D{
+		{Key: "collMod", Value: "ticket"},
+		{Key: "validator", Value: validator},
+		{Key: "validationLevel", Value: "strict"},
+		{Key: "validationAction", Value: "error"},
+	}
+
+	return db.RunCommand(ctx, cmd).Err()
+}
+
 func EnsureTicketCollection(ctx context.Context, db *mongo.Database) error {
 	existing, err := db.ListCollectionNames(ctx, bson.D{{Key: "name", Value: "ticket"}})
 	if err != nil {
