@@ -23,18 +23,59 @@ func eventSchema() bson.D {
 		{Key: "enum", Value: bson.A{"concert", "recital", "solo recitals", "operatic productions"}},
 	}
 
+	statusSchema := bson.D{
+		{Key: "bsonType", Value: "string"},
+		{Key: "enum", Value: bson.A{"draft", "published", "cancelled", "postpond"}},
+	}
+
+	visibilitySchema := bson.D{
+		{Key: "bsonType", Value: "string"},
+		{Key: "enum", Value: bson.A{"draft", "published", "cancelled", "postpond"}},
+	}
+
+	availabilitySchema := bson.D{
+		{Key: "bsonType", Value: "string"},
+		{Key: "enum", Value: bson.A{"available", "soldOut"}},
+	}
+
+	venueShema := bson.D{
+		{Key: "bsonType", Value: "object"},
+		{Key: "Properties", Value: bson.D{
+			{Key: "name", Value: "string"},
+			{Key: "address", Value: "string"},
+			{Key: "capacity", Value: "int"},
+		}},
+	}
+
+	seatTypeSchema := bson.D{
+		{Key: "bsonType", Value: "string"},
+		{Key: "enum", Value: bson.A{"seated", "standing", "mixed"}},
+	}
+
 	return bson.D{{
 		Key: "$jsonSchema",
 		Value: bson.D{
 			{Key: "bsonType", Value: "object"},
-			{Key: "required", Value: bson.A{"name", "date", "description", "eventType"}},
+			{Key: "required", Value: bson.A{"name", "startAt", "description", "eventType", "venue", "status", "visibility", "salesStartAt", "seatType"}},
 			{Key: "properties", Value: bson.D{
 				{Key: "_id", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
-				{Key: "date", Value: bson.D{{Key: "bsonType", Value: "date"}}},
 				{Key: "name", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 				{Key: "description", Value: bson.D{{Key: "bsonType", Value: "string"}}},
-				{Key: "artists", Value: artistSchema},
+
+				{Key: "startAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+				{Key: "salesStartAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+
+				{Key: "currency", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 				{Key: "eventType", Value: eventTypeSchema},
+				{Key: "seatType", Value: seatTypeSchema},
+				// Missing: seatMap, pricing and pricingMap
+
+				{Key: "venueId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+				{Key: "venue", Value: venueShema},
+				{Key: "artists", Value: artistSchema},
+				{Key: "status", Value: statusSchema},
+				{Key: "Availability", Value: availabilitySchema},
+				{Key: "visibility", Value: visibilitySchema},
 			}},
 		},
 	}}

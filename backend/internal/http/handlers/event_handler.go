@@ -3,11 +3,12 @@ package handlers
 import (
 	"strings"
 
+	"github.com/Kushian01100111/Tickermaster/internal/app/event"
 	"github.com/gin-gonic/gin"
 )
 
 type EventHandler struct {
-	placeholder string
+	app event.EventService
 }
 
 func NewEventHandler() *EventHandler {
@@ -35,8 +36,15 @@ func (e *EventHandler) getEvent(g *gin.Context) {
 	name = deSlash(name)
 
 }
-func (e *EventHandler) updateEvent(g *gin.Context)
-func (e *EventHandler) deleteEvent(g *gin.Context)
+
+func (e *EventHandler) updateEvent(g *gin.Context) {
+	name := g.Param("name")
+	name = deSlash(name)
+}
+func (e *EventHandler) deleteEvent(g *gin.Context) {
+	name := g.Param("name")
+	name = deSlash(name)
+}
 
 func deSlash(str string) string {
 	var res strings.Builder
