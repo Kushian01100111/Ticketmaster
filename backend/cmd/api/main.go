@@ -6,11 +6,15 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	"github.com/Kushian01100111/Tickermaster/internal/app/event"
 	"github.com/Kushian01100111/Tickermaster/internal/config"
 	http1 "github.com/Kushian01100111/Tickermaster/internal/http"
+	"github.com/Kushian01100111/Tickermaster/internal/http/handlers"
+	"github.com/Kushian01100111/Tickermaster/internal/repository"
 	"github.com/Kushian01100111/Tickermaster/internal/storage/mongodb"
 )
 
@@ -36,7 +40,16 @@ func main() {
 
 	addr := flag.String("addr", ":"+config.Port, "HTTP network address")
 
-	r := http1.NewHandler(config)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	eventRepo := repository.NewEventRepository(db.Database(config.DB), ctx)
+
+	eventSvc := event.NewEventService(eventRepo)
+
+	eventHandler := handlers.NewEventHandler(eventSvc)
+
+	r := http1.NewHandler(http1.RouterDep{EventDep: eventHandler}, config)
 
 	srv := &http.Server{
 		Addr:    *addr,

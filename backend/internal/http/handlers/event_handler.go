@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/event"
+	"github.com/Kushian01100111/Tickermaster/internal/http/dto"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,8 +14,8 @@ type EventHandler struct {
 	app event.EventService
 }
 
-func NewEventHandler() *EventHandler {
-	return &EventHandler{}
+func NewEventHandler(svc event.EventService) *EventHandler {
+	return &EventHandler{app: svc}
 }
 
 func (e *EventHandler) EventRoutes(r *gin.RouterGroup) {
@@ -26,7 +29,36 @@ func (e *EventHandler) EventRoutes(r *gin.RouterGroup) {
 	}
 }
 
-func (e *EventHandler) createEvent(g *gin.Context)
+func (e *EventHandler) createEvent(g *gin.Context) {
+	var req *dto.EventRequest
+
+	if err := g.ShouldBindJSON(&req); err != nil {
+		g.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind body of request"})
+		return
+	}
+
+	event, err := e.app.CreateEvent(event.EventParams{
+		Title:       req.Title,
+		Description: req.Description,
+		Date:        req.StartingDate,
+		SalesStart:  req.SalesStart,
+		Currency:    req.Currency,
+		EventType:   req.EventType,
+		SeatType:    req.SeatType,
+		VenueID:     req.VenueID,
+		Performers:  req.Performers,
+		Status:      "draft",
+		Visibility:  req.Visibility,
+	})
+
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create note"})
+		return
+	}
+
+	g.JSON(http.StatusCreated, dto.ToEventResponse(event))
+}
+
 func (e *EventHandler) searchEvents(g *gin.Context) {
 	name := g.Param("name")
 	name = deSlash(name)

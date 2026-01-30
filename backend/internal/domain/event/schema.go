@@ -30,7 +30,7 @@ func eventSchema() bson.D {
 
 	visibilitySchema := bson.D{
 		{Key: "bsonType", Value: "string"},
-		{Key: "enum", Value: bson.A{"draft", "published", "cancelled", "postpond"}},
+		{Key: "enum", Value: bson.A{"public", "unlisted", "private"}},
 	}
 
 	availabilitySchema := bson.D{
@@ -56,14 +56,14 @@ func eventSchema() bson.D {
 		Key: "$jsonSchema",
 		Value: bson.D{
 			{Key: "bsonType", Value: "object"},
-			{Key: "required", Value: bson.A{"name", "startAt", "description", "eventType", "venue", "status", "visibility", "salesStartAt", "seatType"}},
+			{Key: "required", Value: bson.A{"name", "startAt", "description", "eventType", "venue", "status", "visibility", "salesStarttAt", "seatType"}},
 			{Key: "properties", Value: bson.D{
 				{Key: "_id", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
 				{Key: "name", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 				{Key: "description", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 
 				{Key: "startAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
-				{Key: "salesStartAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+				{Key: "salesStarttAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
 
 				{Key: "currency", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 				{Key: "eventType", Value: eventTypeSchema},

@@ -17,16 +17,17 @@ type Event struct {
 	Title       string             `bson:"name,omitempty"`
 	Description string             `bson:"description,omitempty"`
 
-	Date      time.Time `bson:"startAt,omitempty"`
-	SalesStar time.Time `bson:"salesStartAt,omitempty"`
+	Date       time.Time `bson:"startAt,omitempty"`
+	SalesStart time.Time `bson:"salesStarttAt,omitempty"`
 
 	Currency  string `bson:"currency"`
 	EventType string `bson:"eventType,omitempty"`
 	SeatType  string `bson:"seatType"`
 
-	VenueID    primitive.ObjectID `bson:"venueId,omitempty"`
-	Venue      Venue              `bson:"venue,omitempty"`
-	Performers []string           `bson:"artists,omitempty"`
-	Status     string             `bson:"status,omitempty"`
-	Visibility string             `bson:"visibility,omitempty"`
+	VenueID      primitive.ObjectID `bson:"venueId,omitempty"`
+	Venue        Venue              `bson:"venue,omitempty"`
+	Performers   []string           `bson:"artists,omitempty"`
+	Status       string             `bson:"status,omitempty"`
+	Availability string             `bson:"availability,omitempty"`
+	Visibility   string             `bson:"visibility,omitempty"`
 }

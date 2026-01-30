@@ -8,9 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Kushian01100111/Tickermaster/internal/config"
+	"github.com/Kushian01100111/Tickermaster/internal/http/handlers"
 )
 
-func NewHandler(config *config.Config) http.Handler {
+type RouterDep struct {
+	EventDep *handlers.EventHandler
+}
+
+func NewHandler(dep RouterDep, config *config.Config) http.Handler {
 	if config.GinConfig == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
