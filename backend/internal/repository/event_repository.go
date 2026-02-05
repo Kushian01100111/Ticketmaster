@@ -11,8 +11,8 @@ type EventRepository interface {
 	Create(event *event.Event) error
 	Update(event *event.Event) error
 	Delete(event *event.Event) error
-	GetByName(event string) (*event.Event, error)
-	SearchByName(event string) ([]event.Event, error)
+	GetByName(event string) (*event.Event, error)     //Change name -> GetByID
+	SearchByName(event string) ([]event.Event, error) //
 }
 
 type mongoEventStorage struct {

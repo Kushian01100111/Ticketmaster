@@ -8,18 +8,32 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-func UpdateVenueCollection(ctx context.Context, db *mongo.Database) error {
-	validator := bson.D{{
+func venueSchema() bson.D {
+	seatTypeSchema := bson.D{
+		{Key: "bsonType", Value: "string"},
+		{Key: "enum", Value: bson.A{"seated", "standing", "mixed"}},
+	}
+
+	return bson.D{{
 		Key: "$jsonSchema",
 		Value: bson.D{
 			{Key: "bsonType", Value: "object"},
-			{Key: "required", Value: bson.A{"address", "capacity"}},
+			{Key: "required", Value: bson.A{"name", "seatType", "address", "capacity"}},
 			{Key: "properties", Value: bson.D{
+				{Key: "name", Value: bson.D{{Key: "bsonType", Value: "string"}}},
+
+				{Key: "seatType", Value: seatTypeSchema},
+				{Key: "seatMapID", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+
 				{Key: "address", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 				{Key: "capacity", Value: bson.D{{Key: "bsonType", Value: "int"}}},
 			}},
 		},
 	}}
+}
+
+func UpdateVenueCollection(ctx context.Context, db *mongo.Database) error {
+	validator := venueSchema()
 
 	cmd := bson.D{
 		{Key: "collMod", Value: "user"},
@@ -37,19 +51,8 @@ func EnsureVenueCollection(ctx context.Context, db *mongo.Database) error {
 		return err
 	}
 
+	validator := venueSchema()
 	if len(existing) == 0 {
-		validator := bson.D{{
-			Key: "$jsonSchema",
-			Value: bson.D{
-				{Key: "bsonType", Value: "object"},
-				{Key: "required", Value: bson.A{"address", "capacity"}},
-				{Key: "properties", Value: bson.D{
-					{Key: "address", Value: bson.D{{Key: "bsonType", Value: "string"}}},
-					{Key: "capacity", Value: bson.D{{Key: "bsonType", Value: "int"}}},
-				}},
-			},
-		}}
-
 		opts := options.CreateCollection().
 			SetValidator(validator).
 			SetValidationAction("error").
