@@ -13,6 +13,7 @@ import (
 
 type RouterDep struct {
 	EventDep *handlers.EventHandler
+	VenueDep *handlers.VenueHandler
 }
 
 func NewHandler(dep RouterDep, config *config.Config) http.Handler {
@@ -30,6 +31,12 @@ func NewHandler(dep RouterDep, config *config.Config) http.Handler {
 		AllowCredentials: true,
 		MaxAge:           25 * time.Minute,
 	}))
+
+	api := r.Group("/api")
+	{
+		dep.EventDep.EventRoutes(api)
+		dep.VenueDep.VenueRoutes(api)
+	}
 
 	return r
 }

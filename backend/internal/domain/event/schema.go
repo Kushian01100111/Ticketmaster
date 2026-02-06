@@ -40,10 +40,10 @@ func eventSchema() bson.D {
 
 	venueShema := bson.D{
 		{Key: "bsonType", Value: "object"},
-		{Key: "Properties", Value: bson.D{
-			{Key: "name", Value: "string"},
-			{Key: "address", Value: "string"},
-			{Key: "capacity", Value: "int"},
+		{Key: "properties", Value: bson.D{
+			{Key: "name", Value: bson.D{{Key: "bsonType", Value: "string"}}},
+			{Key: "address", Value: bson.D{{Key: "bsonType", Value: "string"}}},
+			{Key: "capacity", Value: bson.D{{Key: "bsonType", Value: "int"}}},
 		}},
 	}
 

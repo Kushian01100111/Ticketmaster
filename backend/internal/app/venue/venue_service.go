@@ -1,8 +1,18 @@
 package venue
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/Kushian01100111/Tickermaster/internal/domain/venue"
 	"github.com/Kushian01100111/Tickermaster/internal/repository"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+var (
+	ErrValidation = errors.New("string validation error")
+	ErrSeatType   = errors.New("invalid seat type")
+	ErrCapacity   = errors.New("invalid capacity")
 )
 
 type VenueParams struct {
@@ -32,7 +42,83 @@ func NewVenueService(repo repository.VenueRepository) VenueService {
 	}
 }
 
-func (s *venueService) GetVenue(venueID string) (*venue.Venue, error)
-func (s *venueService) CreateVenue(params VenueParams) (*venue.Venue, error)
-func (s *venueService) UpdateVenue(venueID string, params VenueParams) (*venue.Venue, error)
-func (s *venueService) DeleteVenue(venueID string) error
+func (s *venueService) GetVenue(venueID string) (*venue.Venue, error) {
+	return s.venueRepo.GetByID(venueID)
+}
+
+func (s *venueService) CreateVenue(params VenueParams) (*venue.Venue, error) {
+	if err := validateParam(params); err != nil {
+		return nil, err
+	}
+
+	SeatMapID, err := primitive.ObjectIDFromHex(params.SeatMapID)
+	if err != nil {
+		return nil, err
+	}
+
+	Venue := &venue.Venue{
+		Name:      params.Name,
+		SeatType:  params.SeatType,
+		SeatMapID: SeatMapID,
+		Address:   params.Address,
+		Capacity:  params.Capacity,
+	}
+
+	if err := s.venueRepo.Create(Venue); err != nil {
+		return nil, err
+	}
+
+	return Venue, nil
+}
+
+func (s *venueService) UpdateVenue(venueID string, params VenueParams) (*venue.Venue, error) {
+	return nil, nil
+}
+
+func (s *venueService) DeleteVenue(venueID string) error {
+	return nil
+}
+
+func validateParam(params VenueParams) error {
+	if err := validateString(params.Name); err != nil {
+		return err
+	}
+
+	if err := validateSeatType(params.SeatType); err != nil {
+		return err
+	}
+
+	if err := validateString(params.Address); err != nil {
+		return err
+	}
+
+	if params.Capacity < 0 || params.Capacity > 90000 {
+		return ErrCapacity
+	}
+
+	return nil
+}
+
+func validateString(str string) error {
+	if strings.TrimSpace(str) == "" {
+		return ErrValidation
+	}
+	return nil
+}
+
+type SeatType string
+
+const (
+	SeatedType   SeatType = "seated"
+	StandingType SeatType = "standing"
+	MixedType    SeatType = "mixed"
+)
+
+func validateSeatType(str string) error {
+	switch SeatType(str) {
+	case SeatedType, StandingType, MixedType:
+		return nil
+	default:
+		return ErrSeatType
+	}
+}

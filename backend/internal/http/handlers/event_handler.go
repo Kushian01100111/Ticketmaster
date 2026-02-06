@@ -52,7 +52,7 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 	})
 
 	if err != nil {
-		g.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create note"})
+		g.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create event"})
 		return
 	}
 

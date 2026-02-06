@@ -11,8 +11,8 @@ type EventRepository interface {
 	Create(event *event.Event) error
 	Update(event *event.Event) error
 	Delete(event *event.Event) error
-	GetByName(event string) (*event.Event, error)     //Change name -> GetByID
-	SearchByName(event string) ([]event.Event, error) //
+	GetByID(event string) (*event.Event, error)      //Change name -> GetByID
+	SearchByName(name string) ([]event.Event, error) //
 }
 
 type mongoEventStorage struct {
@@ -28,7 +28,17 @@ func (s *mongoEventStorage) Create(event *event.Event) error {
 	_, err := s.db.Collection("event").InsertOne(s.ctx, event)
 	return err
 }
-func (s *mongoEventStorage) Update(event *event.Event) error
-func (s *mongoEventStorage) Delete(event *event.Event) error
-func (s *mongoEventStorage) GetByName(event string) (*event.Event, error)
-func (s *mongoEventStorage) SearchByName(event string) ([]event.Event, error)
+func (s *mongoEventStorage) Update(event *event.Event) error {
+	return nil
+}
+
+func (s *mongoEventStorage) Delete(event *event.Event) error {
+	return nil
+}
+func (s *mongoEventStorage) GetByID(event string) (*event.Event, error) {
+	return nil, nil
+}
+func (s *mongoEventStorage) SearchByName(name string) ([]event.Event, error) {
+	var res []event.Event
+	return res, nil
+}

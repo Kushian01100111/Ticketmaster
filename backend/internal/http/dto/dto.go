@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/domain/event"
+	"github.com/Kushian01100111/Tickermaster/internal/domain/venue"
 )
 
 //Event
@@ -63,5 +64,39 @@ func ToEventResponse(event *event.Event) EventResponse {
 		Venue:       InternalVenueResponse(event.Venue),
 		Performers:  event.Performers,
 		Visibility:  event.Visibility,
+	}
+}
+
+/// Venue
+
+type VenueRequest struct {
+	Name string `json:"name"`
+
+	SeatType  string `json:"seatType"`
+	SeatMapID string `json:"seatMapId"`
+
+	Address  string `json:"address"`
+	Capacity int32  `json:"capacity"`
+}
+
+type VenueResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+
+	SeatType  string `json:"seatType"`
+	SeatMapID string `json:"seatMapId"`
+
+	Address  string `json:"address"`
+	Capacity int32  `json:"capacity"`
+}
+
+func ToVenueResponse(venue *venue.Venue) VenueResponse {
+	return VenueResponse{
+		ID:        venue.ID.Hex(),
+		Name:      venue.Name,
+		SeatType:  venue.SeatType,
+		SeatMapID: venue.SeatMapID.Hex(),
+		Address:   venue.Address,
+		Capacity:  venue.Capacity,
 	}
 }

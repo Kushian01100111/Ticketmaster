@@ -21,10 +21,12 @@ func userSchema() bson.D {
 		Key: "$jsonSchema",
 		Value: bson.D{
 			{Key: "bsonType", Value: "object"},
-			{Key: "required", Value: bson.A{"userID", "name", "password", "bookedEvents"}},
+			{Key: "required", Value: bson.A{"userID", "userName", "password", "bookedEvents"}},
 			{Key: "properties", Value: bson.D{
 				{Key: "_id", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
 				{Key: "userId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
+				{Key: "userName", Value: bson.D{{Key: "bsonType", Value: "string"}}},
+
 				{Key: "failedLoginCount", Value: bson.D{{Key: "bsonType", Value: "int"}}},
 				{Key: "bookedEvents", Value: artistSchema},
 				{Key: "lastFailedLogin", Value: bson.D{{Key: "bsonType", Value: "date"}}},

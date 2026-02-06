@@ -63,14 +63,21 @@ type eventService struct {
 	venueRepo repository.VenueRepository
 }
 
-func NewEventService(repo repository.EventRepository) EventService {
+func NewEventService(eventrepo repository.EventRepository, venuerepo repository.VenueRepository) EventService {
 	return &eventService{
-		eventRepo: repo,
+		eventRepo: eventrepo,
+		venueRepo: venuerepo,
 	}
 }
 
-func (s *eventService) SearchEvent(params SearchParams) ([]event.Event, error) // Missing: Availability in searchParams
-func (s *eventService) GetEvent(name string) (*event.Event, error)
+func (s *eventService) SearchEvent(params SearchParams) ([]event.Event, error) {
+	var res []event.Event
+	return res, nil
+}
+
+func (s *eventService) GetEvent(name string) (*event.Event, error) {
+	return nil, nil
+}
 
 func (s *eventService) CreateEvent(params EventParams) (*event.Event, error) {
 	if err := validateParam(params); err != nil {
@@ -112,8 +119,13 @@ func (s *eventService) CreateEvent(params EventParams) (*event.Event, error) {
 	return Event, nil
 }
 
-func (s *eventService) UpdateEvent(name string, params EventParams) (*event.Event, error)
-func (s *eventService) DeleteEvent(name string) error
+func (s *eventService) UpdateEvent(name string, params EventParams) (*event.Event, error) {
+	return nil, nil
+}
+
+func (s *eventService) DeleteEvent(name string) error {
+	return nil
+}
 
 ///
 ///

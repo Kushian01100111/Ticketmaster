@@ -35,7 +35,7 @@ func ticketSchema() bson.D {
 				{Key: "userId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
 				{Key: "eventId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
 
-				{Key: "price", Value: bson.D{{Key: "bsonType", Value: "decimal128"}}},
+				{Key: "price", Value: bson.D{{Key: "bsonType", Value: "decimal"}}},
 				{Key: "status", Value: statusSchema},
 				{Key: "seatData", Value: seatSchema},
 			}},

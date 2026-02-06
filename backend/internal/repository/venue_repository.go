@@ -25,9 +25,19 @@ func NewVenueRepository(db *mongo.Database, ctx context.Context) VenueRepository
 	return &mongoVenueStorage{db: db, ctx: ctx}
 }
 
-func (s *mongoVenueStorage) Create(venue *venue.Venue) error
-func (s *mongoVenueStorage) Update(venue *venue.Venue) error
-func (s *mongoVenueStorage) Delete(venue *venue.Venue) error
+func (s *mongoVenueStorage) Create(venue *venue.Venue) error {
+	_, err := s.db.Collection("venue").InsertOne(s.ctx, venue)
+	return err
+}
+
+func (s *mongoVenueStorage) Update(venue *venue.Venue) error {
+	return nil
+}
+
+func (s *mongoVenueStorage) Delete(venue *venue.Venue) error {
+	return nil
+}
+
 func (s *mongoVenueStorage) GetByID(idHex string) (*venue.Venue, error) {
 	id, err := primitive.ObjectIDFromHex(idHex)
 	if err != nil {
