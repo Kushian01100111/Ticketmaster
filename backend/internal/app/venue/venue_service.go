@@ -1,6 +1,7 @@
 package venue
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -26,10 +27,10 @@ type VenueParams struct {
 }
 
 type VenueService interface {
-	GetVenue(venueID string) (*venue.Venue, error)
-	CreateVenue(params VenueParams) (*venue.Venue, error)
-	UpdateVenue(venueID string, params VenueParams) (*venue.Venue, error)
-	DeleteVenue(venueID string) error
+	GetVenue(venueID string, ctx context.Context) (*venue.Venue, error)
+	CreateVenue(params VenueParams, ctx context.Context) (*venue.Venue, error)
+	UpdateVenue(venueID string, params VenueParams, ctx context.Context) (*venue.Venue, error)
+	DeleteVenue(venueID string, ctx context.Context) error
 }
 
 type venueService struct {
@@ -42,11 +43,11 @@ func NewVenueService(repo repository.VenueRepository) VenueService {
 	}
 }
 
-func (s *venueService) GetVenue(venueID string) (*venue.Venue, error) {
-	return s.venueRepo.GetByID(venueID)
+func (s *venueService) GetVenue(venueID string, ctx context.Context) (*venue.Venue, error) {
+	return s.venueRepo.GetByID(venueID, ctx)
 }
 
-func (s *venueService) CreateVenue(params VenueParams) (*venue.Venue, error) {
+func (s *venueService) CreateVenue(params VenueParams, ctx context.Context) (*venue.Venue, error) {
 	if err := validateParam(params); err != nil {
 		return nil, err
 	}
@@ -64,18 +65,21 @@ func (s *venueService) CreateVenue(params VenueParams) (*venue.Venue, error) {
 		Capacity:  params.Capacity,
 	}
 
-	if err := s.venueRepo.Create(Venue); err != nil {
+	id, err := s.venueRepo.Create(Venue, ctx)
+	if err != nil {
 		return nil, err
 	}
+
+	Venue.ID = id
 
 	return Venue, nil
 }
 
-func (s *venueService) UpdateVenue(venueID string, params VenueParams) (*venue.Venue, error) {
+func (s *venueService) UpdateVenue(venueID string, params VenueParams, ctx context.Context) (*venue.Venue, error) {
 	return nil, nil
 }
 
-func (s *venueService) DeleteVenue(venueID string) error {
+func (s *venueService) DeleteVenue(venueID string, ctx context.Context) error {
 	return nil
 }
 

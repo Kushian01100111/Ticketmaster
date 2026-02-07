@@ -66,6 +66,10 @@ func EnsureVenueCollection(ctx context.Context, db *mongo.Database) error {
 	coll := db.Collection("venue")
 	_, err = coll.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
+			Keys:    bson.D{{Key: "name", Value: 1}},
+			Options: options.Index().SetUnique(true),
+		},
+		{
 			Keys:    bson.D{{Key: "address", Value: 1}},
 			Options: options.Index().SetUnique(true),
 		},

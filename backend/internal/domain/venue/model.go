@@ -3,7 +3,7 @@ package venue
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type Venue struct {
-	ID   primitive.ObjectID `bson:"_id,omitemptty"`
+	ID   primitive.ObjectID `bson:"_id,omitempty"`
 	Name string             `bson:"name"`
 
 	SeatType  string             `bson:"seatType"`

@@ -1,6 +1,7 @@
 package event
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"time"
@@ -51,11 +52,11 @@ type SearchParams struct {
 }
 
 type EventService interface {
-	SearchEvent(search SearchParams) ([]event.Event, error)
-	GetEvent(eventID string) (*event.Event, error)
-	CreateEvent(params EventParams) (*event.Event, error)
-	UpdateEvent(eventID string, params EventParams) (*event.Event, error)
-	DeleteEvent(eventID string) error
+	SearchEvent(search SearchParams, ctx context.Context) ([]event.Event, error)
+	GetEvent(eventID string, ctx context.Context) (*event.Event, error)
+	CreateEvent(params EventParams, ctx context.Context) (*event.Event, error)
+	UpdateEvent(eventID string, params EventParams, ctx context.Context) (*event.Event, error)
+	DeleteEvent(eventID string, ctx context.Context) error
 }
 
 type eventService struct {
@@ -70,16 +71,16 @@ func NewEventService(eventrepo repository.EventRepository, venuerepo repository.
 	}
 }
 
-func (s *eventService) SearchEvent(params SearchParams) ([]event.Event, error) {
+func (s *eventService) SearchEvent(params SearchParams, ctx context.Context) ([]event.Event, error) {
 	var res []event.Event
 	return res, nil
 }
 
-func (s *eventService) GetEvent(name string) (*event.Event, error) {
+func (s *eventService) GetEvent(name string, ctx context.Context) (*event.Event, error) {
 	return nil, nil
 }
 
-func (s *eventService) CreateEvent(params EventParams) (*event.Event, error) {
+func (s *eventService) CreateEvent(params EventParams, ctx context.Context) (*event.Event, error) {
 	if err := validateParam(params); err != nil {
 		return nil, err
 	}
@@ -88,7 +89,7 @@ func (s *eventService) CreateEvent(params EventParams) (*event.Event, error) {
 		return nil, err
 	}
 
-	venue, err := s.venueRepo.GetByID(params.VenueID)
+	venue, err := s.venueRepo.GetByID(params.VenueID, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -112,18 +113,18 @@ func (s *eventService) CreateEvent(params EventParams) (*event.Event, error) {
 		Visibility:   params.Visibility,
 	}
 
-	if err := s.eventRepo.Create(Event); err != nil {
+	if err := s.eventRepo.Create(Event, ctx); err != nil {
 		return nil, err
 	}
 
 	return Event, nil
 }
 
-func (s *eventService) UpdateEvent(name string, params EventParams) (*event.Event, error) {
+func (s *eventService) UpdateEvent(name string, params EventParams, ctx context.Context) (*event.Event, error) {
 	return nil, nil
 }
 
-func (s *eventService) DeleteEvent(name string) error {
+func (s *eventService) DeleteEvent(name string, ctx context.Context) error {
 	return nil
 }
 

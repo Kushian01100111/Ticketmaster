@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/event"
 	"github.com/Kushian01100111/Tickermaster/internal/http/dto"
@@ -37,6 +39,9 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 		return
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
 	event, err := e.app.CreateEvent(event.EventParams{
 		Title:       req.Title,
 		Description: req.Description,
@@ -49,7 +54,7 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 		Performers:  req.Performers,
 		Status:      "draft",
 		Visibility:  req.Visibility,
-	})
+	}, ctx)
 
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create event"})

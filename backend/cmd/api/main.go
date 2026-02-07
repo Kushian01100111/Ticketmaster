@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -41,11 +40,8 @@ func main() {
 
 	addr := flag.String("addr", ":"+config.Port, "HTTP network address")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	eventRepo := repository.NewEventRepository(db.Database(config.DB), ctx)
-	venueRepo := repository.NewVenueRepository(db.Database(config.DB), ctx)
+	eventRepo := repository.NewEventRepository(db.Database(config.DB))
+	venueRepo := repository.NewVenueRepository(db.Database(config.DB))
 
 	eventSvc := event.NewEventService(eventRepo, venueRepo)
 	venueSvc := venue.NewVenueService(venueRepo)
