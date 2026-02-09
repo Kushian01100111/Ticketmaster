@@ -20,6 +20,7 @@ func venueSchema() bson.D {
 			{Key: "bsonType", Value: "object"},
 			{Key: "required", Value: bson.A{"name", "seatType", "address", "capacity"}},
 			{Key: "properties", Value: bson.D{
+				{Key: "_id", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
 				{Key: "name", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 
 				{Key: "seatType", Value: seatTypeSchema},

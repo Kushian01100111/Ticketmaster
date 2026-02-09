@@ -1,13 +1,13 @@
 package venue
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import "go.mongodb.org/mongo-driver/v2/bson"
 
 type Venue struct {
-	ID   primitive.ObjectID `bson:"_id,omitempty"`
-	Name string             `bson:"name"`
+	ID   bson.ObjectID `bson:"_id,omitempty"`
+	Name string        `bson:"name"`
 
-	SeatType  string             `bson:"seatType"`
-	SeatMapID primitive.ObjectID `bson:"venueId"`
+	SeatType  string        `bson:"seatType"`
+	SeatMapID bson.ObjectID `bson:"seatMapId,omitempty"`
 
 	Address  string `bson:"address"`
 	Capacity int32  `bson:"capacity"`

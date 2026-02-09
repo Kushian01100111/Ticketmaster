@@ -7,13 +7,15 @@ import (
 
 	"github.com/Kushian01100111/Tickermaster/internal/domain/venue"
 	"github.com/Kushian01100111/Tickermaster/internal/repository"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 var (
-	ErrValidation = errors.New("string validation error")
-	ErrSeatType   = errors.New("invalid seat type")
-	ErrCapacity   = errors.New("invalid capacity")
+	ErrValidation    = errors.New("string validation error")
+	ErrSeatType      = errors.New("invalid seat type")
+	ErrCapacity      = errors.New("invalid capacity")
+	ErrProvidedID    = errors.New("provided id is not a valid objectID")
+	ErrProvidedMapID = errors.New("provided mapId is no a valid objectId")
 )
 
 type VenueParams struct {
@@ -53,10 +55,15 @@ func (s *venueService) CreateVenue(params VenueParams, ctx context.Context) (*ve
 		return nil, err
 	}
 
-	SeatMapID, err := primitive.ObjectIDFromHex(params.SeatMapID)
-	if err != nil {
-		return nil, err
-	}
+	SeatMapID := bson.NewObjectID()
+
+	/*
+	   	-> Hasta que no pueda asegurar que los ID seatMap sean correctos lo cambio a una generado de forma random
+	   SeatMapID, err := primitive.ObjectIDFromHex(params.SeatMapID)
+	   	if err != nil {
+	   		return nil, err
+	   	}
+	*/
 
 	Venue := &venue.Venue{
 		Name:      params.Name,
@@ -81,7 +88,36 @@ func (s *venueService) GetAllVenues(ctx context.Context) ([]venue.Venue, error) 
 }
 
 func (s *venueService) UpdateVenue(venueID string, params VenueParams, ctx context.Context) (*venue.Venue, error) {
-	return nil, nil
+	if err := validateParam(params); err != nil {
+		return nil, ErrValidation
+	}
+
+	id, err := bson.ObjectIDFromHex(venueID)
+	if err != nil {
+		return nil, ErrProvidedID
+	}
+
+	Venue := &venue.Venue{
+		ID:       id,
+		Name:     params.Name,
+		SeatType: params.SeatType,
+		Address:  params.Address,
+		Capacity: params.Capacity,
+	}
+
+	if params.SeatMapID != "" {
+		SeatMapID, err := bson.ObjectIDFromHex(params.SeatMapID)
+		if err != nil {
+			return nil, ErrProvidedMapID
+		}
+		Venue.SeatMapID = SeatMapID
+	}
+
+	if err := s.venueRepo.Update(Venue, ctx); err != nil {
+		return nil, err
+	}
+
+	return Venue, nil
 }
 
 func (s *venueService) DeleteVenue(venueID string, ctx context.Context) error {
