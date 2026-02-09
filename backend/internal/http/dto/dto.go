@@ -90,6 +90,23 @@ type VenueResponse struct {
 	Capacity int32  `json:"capacity"`
 }
 
+func ToVenueSliceResponse(venues []venue.Venue) []VenueResponse {
+	response := make([]VenueResponse, len(venues))
+
+	for i, venue := range venues {
+		response[i] = VenueResponse{
+			ID:        venue.ID.Hex(),
+			Name:      venue.Name,
+			SeatType:  venue.SeatType,
+			SeatMapID: venue.SeatMapID.Hex(),
+			Address:   venue.Address,
+			Capacity:  venue.Capacity,
+		}
+	}
+
+	return response
+}
+
 func ToVenueResponse(venue *venue.Venue) VenueResponse {
 	return VenueResponse{
 		ID:        venue.ID.Hex(),

@@ -28,6 +28,7 @@ type VenueParams struct {
 
 type VenueService interface {
 	GetVenue(venueID string, ctx context.Context) (*venue.Venue, error)
+	GetAllVenues(ctx context.Context) ([]venue.Venue, error)
 	CreateVenue(params VenueParams, ctx context.Context) (*venue.Venue, error)
 	UpdateVenue(venueID string, params VenueParams, ctx context.Context) (*venue.Venue, error)
 	DeleteVenue(venueID string, ctx context.Context) error
@@ -73,6 +74,10 @@ func (s *venueService) CreateVenue(params VenueParams, ctx context.Context) (*ve
 	Venue.ID = id
 
 	return Venue, nil
+}
+
+func (s *venueService) GetAllVenues(ctx context.Context) ([]venue.Venue, error) {
+	return s.venueRepo.GetAll(ctx)
 }
 
 func (s *venueService) UpdateVenue(venueID string, params VenueParams, ctx context.Context) (*venue.Venue, error) {

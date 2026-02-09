@@ -23,14 +23,27 @@ func NewVenueHandler(svc venue.VenueService) *VenueHandler {
 func (v *VenueHandler) VenueRoutes(r *gin.RouterGroup) {
 	context := r.Group("/venue")
 	{
+		context.GET("", v.getAllvenues)
 		context.GET("/:id", v.getVenue)
 		context.PUT("", v.createVenue)
 	}
 }
 
+func (v *VenueHandler) getAllvenues(g *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	venues, err := v.app.GetAllVenues(ctx)
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.JSON(http.StatusOK, dto.ToVenueSliceResponse(venues))
+}
+
 func (v *VenueHandler) getVenue(g *gin.Context) {
-	id := ("id")
-	id = DeSlash(id)
+	id := g.Param("id")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()

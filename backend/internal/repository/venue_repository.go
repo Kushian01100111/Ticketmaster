@@ -20,6 +20,7 @@ type VenueRepository interface {
 	Update(venue *venue.Venue, ctx context.Context) error
 	Delete(venue *venue.Venue, ctx context.Context) error
 	GetByID(idHex string, ctx context.Context) (*venue.Venue, error)
+	GetAll(ctx context.Context) ([]venue.Venue, error)
 }
 
 type mongoVenueStorage struct {
@@ -71,4 +72,18 @@ func (s *mongoVenueStorage) GetByID(idHex string, ctx context.Context) (*venue.V
 	}
 
 	return &out, err
+}
+
+func (s *mongoVenueStorage) GetAll(ctx context.Context) ([]venue.Venue, error) {
+	cur, err := s.db.Collection("venue").Find(ctx, bson.D{})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	var venues []venue.Venue
+	if err := cur.All(ctx, &venues); err != nil {
+		return nil, err
+	}
+	return venues, err
 }

@@ -66,24 +66,24 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 
 func (e *EventHandler) searchEvents(g *gin.Context) {
 	name := g.Param("name")
-	name = deSlash(name)
+	name = DeSlash(name)
 }
 func (e *EventHandler) getEvent(g *gin.Context) {
 	name := g.Param("name")
-	name = deSlash(name)
+	name = DeSlash(name)
 
 }
 
 func (e *EventHandler) updateEvent(g *gin.Context) {
 	name := g.Param("name")
-	name = deSlash(name)
+	name = DeSlash(name)
 }
 func (e *EventHandler) deleteEvent(g *gin.Context) {
 	name := g.Param("name")
-	name = deSlash(name)
+	name = DeSlash(name)
 }
 
-func deSlash(str string) string {
+func DeSlash(str string) string {
 	var res strings.Builder
 	res.Grow(len(str))
 
