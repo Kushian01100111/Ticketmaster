@@ -8,6 +8,7 @@ import (
 
 	"github.com/Kushian01100111/Tickermaster/internal/domain/event"
 	"github.com/Kushian01100111/Tickermaster/internal/repository"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 var (
@@ -89,7 +90,12 @@ func (s *eventService) CreateEvent(params EventParams, ctx context.Context) (*ev
 		return nil, err
 	}
 
-	venue, err := s.venueRepo.GetByID(params.VenueID, ctx)
+	venueID, err := bson.ObjectIDFromHex(params.VenueID)
+	if err != nil {
+		return nil, err
+	}
+
+	venue, err := s.venueRepo.GetByID(venueID, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -101,6 +107,7 @@ func (s *eventService) CreateEvent(params EventParams, ctx context.Context) (*ev
 		SalesStart:  params.SalesStart,
 		Currency:    params.Currency,
 		EventType:   params.EventType,
+		SeatType:    params.SeatType,
 		VenueID:     venue.ID,
 		Venue: event.Venue{
 			Name:     venue.Name,

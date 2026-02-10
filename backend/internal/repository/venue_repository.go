@@ -10,16 +10,17 @@ import (
 )
 
 var (
-	ErrDuplicate     = errors.New("venue is a already created")
-	ErrPassingID     = errors.New("unexpected id type")
-	ErrVenueNotFound = errors.New("venue could'nt be found")
+	ErrDuplicate       = errors.New("venue is a already created")
+	ErrUpdateDuplicate = errors.New("couldn't update venue because other venue has the same name or address")
+	ErrPassingID       = errors.New("unexpected id type")
+	ErrVenueNotFound   = errors.New("venue couldn't be found")
 )
 
 type VenueRepository interface {
 	Create(venue *venue.Venue, ctx context.Context) (bson.ObjectID, error)
 	Update(venue *venue.Venue, ctx context.Context) error
-	Delete(venue *venue.Venue, ctx context.Context) error
-	GetByID(idHex string, ctx context.Context) (*venue.Venue, error)
+	Delete(id bson.ObjectID, ctx context.Context) error
+	GetByID(id bson.ObjectID, ctx context.Context) (*venue.Venue, error)
 	GetAll(ctx context.Context) ([]venue.Venue, error)
 }
 
@@ -50,26 +51,24 @@ func (s *mongoVenueStorage) Create(venue *venue.Venue, ctx context.Context) (bso
 
 func (s *mongoVenueStorage) Update(venue *venue.Venue, ctx context.Context) error {
 	filter := bson.M{"_id": venue.ID}
-	update := bson.M{"$set": bson.M{
+	set := bson.M{
 		"name":     venue.Name,
 		"seatType": venue.SeatType,
 		"address":  venue.Address,
 		"capacity": venue.Capacity,
-	}}
+	}
 
 	if !venue.SeatMapID.IsZero() {
-		update = bson.M{"$set": bson.M{
-			"name":      venue.ID,
-			"seatType":  venue.SeatType,
-			"seatMapId": venue.SeatMapID,
-			"address":   venue.Address,
-			"capacity":  venue.Capacity,
-		}}
-
+		set["seatMapId"] = venue.SeatMapID
 	}
+
+	update := bson.M{"$set": set}
 
 	res, err := s.db.Collection("venue").UpdateOne(ctx, filter, update)
 	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return ErrUpdateDuplicate
+		}
 		return err
 	}
 
@@ -80,18 +79,23 @@ func (s *mongoVenueStorage) Update(venue *venue.Venue, ctx context.Context) erro
 	return nil
 }
 
-func (s *mongoVenueStorage) Delete(venue *venue.Venue, ctx context.Context) error {
+func (s *mongoVenueStorage) Delete(id bson.ObjectID, ctx context.Context) error {
+	res, err := s.db.Collection("venue").
+		DeleteOne(ctx, bson.D{{Key: "_id", Value: id}})
+	if err != nil {
+		return err
+	}
+
+	if res.DeletedCount == 0 {
+		return ErrVenueNotFound
+	}
+
 	return nil
 }
 
-func (s *mongoVenueStorage) GetByID(idHex string, ctx context.Context) (*venue.Venue, error) {
-	id, err := bson.ObjectIDFromHex(idHex)
-	if err != nil {
-		return nil, err
-	}
-
+func (s *mongoVenueStorage) GetByID(id bson.ObjectID, ctx context.Context) (*venue.Venue, error) {
 	var out venue.Venue
-	err = s.db.Collection("venue").
+	err := s.db.Collection("venue").
 		FindOne(ctx, bson.D{{Key: "_id", Value: id}}).
 		Decode(&out)
 

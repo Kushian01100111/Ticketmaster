@@ -20,9 +20,10 @@ type EventRequest struct {
 	EventType string `json:"eventType"`
 	SeatType  string `json:"seatType"`
 
-	VenueID    string   `json:"venue"`
-	Performers []string `json:"artist,omitempty"`
-	Visibility string   `json:"visibility"`
+	VenueID      string   `json:"venueId"`
+	Performers   []string `json:"artist,omitempty"`
+	Availability string   `json:"availability"`
+	Visibility   string   `json:"visibility"`
 }
 
 type InternalVenueResponse struct {

@@ -43,21 +43,22 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 	defer cancel()
 
 	event, err := e.app.CreateEvent(event.EventParams{
-		Title:       req.Title,
-		Description: req.Description,
-		Date:        req.StartingDate,
-		SalesStart:  req.SalesStart,
-		Currency:    req.Currency,
-		EventType:   req.EventType,
-		SeatType:    req.SeatType,
-		VenueID:     req.VenueID,
-		Performers:  req.Performers,
-		Status:      "draft",
-		Visibility:  req.Visibility,
+		Title:        req.Title,
+		Description:  req.Description,
+		Date:         req.StartingDate,
+		SalesStart:   req.SalesStart,
+		Currency:     req.Currency,
+		EventType:    req.EventType,
+		SeatType:     req.SeatType,
+		VenueID:      req.VenueID,
+		Performers:   req.Performers,
+		Status:       "draft",
+		Availability: req.Availability,
+		Visibility:   req.Visibility,
 	}, ctx)
 
 	if err != nil {
-		g.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create event"})
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

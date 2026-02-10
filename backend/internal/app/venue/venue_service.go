@@ -47,7 +47,11 @@ func NewVenueService(repo repository.VenueRepository) VenueService {
 }
 
 func (s *venueService) GetVenue(venueID string, ctx context.Context) (*venue.Venue, error) {
-	return s.venueRepo.GetByID(venueID, ctx)
+	id, err := bson.ObjectIDFromHex(venueID)
+	if err != nil {
+		return nil, err
+	}
+	return s.venueRepo.GetByID(id, ctx)
 }
 
 func (s *venueService) CreateVenue(params VenueParams, ctx context.Context) (*venue.Venue, error) {
@@ -121,6 +125,15 @@ func (s *venueService) UpdateVenue(venueID string, params VenueParams, ctx conte
 }
 
 func (s *venueService) DeleteVenue(venueID string, ctx context.Context) error {
+	id, err := bson.ObjectIDFromHex(venueID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.venueRepo.Delete(id, ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 

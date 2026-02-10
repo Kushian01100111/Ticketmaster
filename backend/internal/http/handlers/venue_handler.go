@@ -87,7 +87,19 @@ func (v *VenueHandler) updateVenue(g *gin.Context) {
 	g.JSON(http.StatusOK, dto.ToVenueResponse(venue))
 }
 
-func (v *VenueHandler) deleteVenue(g *gin.Context) {}
+func (v *VenueHandler) deleteVenue(g *gin.Context) {
+	id := g.Param("id")
+
+	ctx, cancel := generateCtx()
+	defer cancel()
+
+	if err := v.app.DeleteVenue(id, ctx); err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.Status(http.StatusNoContent)
+}
 
 func (v *VenueHandler) createVenue(g *gin.Context) {
 	var req *dto.VenueRequest
