@@ -13,21 +13,21 @@ type Venue struct {
 }
 
 type Event struct {
-	ID          bson.ObjectID `bson:"_id,omitempty"`
-	Title       string        `bson:"name,omitempty"`
-	Description string        `bson:"description,omitempty"`
+	ID          bson.ObjectID `bson:"_id"`
+	Title       string        `bson:"name"`
+	Description string        `bson:"description"`
 
-	Date       time.Time `bson:"startAt,omitempty"`
-	SalesStart time.Time `bson:"salesStarttAt,omitempty"`
+	Date       time.Time `bson:"startAt"`
+	SalesStart time.Time `bson:"salesStarttAt"`
 
 	Currency  string `bson:"currency"`
-	EventType string `bson:"eventType,omitempty"`
+	EventType string `bson:"eventType"`
 	SeatType  string `bson:"seatType"`
 
-	VenueID      bson.ObjectID `bson:"venueId,omitempty"`
+	VenueID      bson.ObjectID `bson:"venueId"`
 	Venue        Venue         `bson:"venue,omitempty"`
-	Performers   []string      `bson:"artists,omitempty"`
-	Status       string        `bson:"status,omitempty"`
-	Availability string        `bson:"availability,omitempty"`
-	Visibility   string        `bson:"visibility,omitempty"`
+	Performers   []string      `bson:"artists"`
+	Status       string        `bson:"status"`
+	Availability string        `bson:"availability,"`
+	Visibility   string        `bson:"visibility"`
 }

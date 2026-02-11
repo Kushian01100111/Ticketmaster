@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/event"
 	"github.com/Kushian01100111/Tickermaster/internal/http/dto"
@@ -23,11 +21,12 @@ func NewEventHandler(svc event.EventService) *EventHandler {
 func (e *EventHandler) EventRoutes(r *gin.RouterGroup) {
 	context := r.Group("/event")
 	{
-		context.GET("", e.searchEvents)
-		context.GET("/:name", e.getEvent)
-		context.PATCH("/:name", e.updateEvent)
 		context.PUT("", e.createEvent)
-		context.DELETE("/:mane", e.deleteEvent)
+		context.GET("", e.getAllEvents)
+		context.GET("/:id", e.getEvent)
+		context.PATCH("/:id", e.updateEvent)
+		context.DELETE("/:id", e.deleteEvent)
+		context.GET("/search/:id", e.searchEvents)
 	}
 }
 
@@ -39,13 +38,13 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := generateCtx()
 	defer cancel()
 
 	event, err := e.app.CreateEvent(event.EventParams{
 		Title:        req.Title,
 		Description:  req.Description,
-		Date:         req.StartingDate,
+		StartingDate: req.StartingDate,
 		SalesStart:   req.SalesStart,
 		Currency:     req.Currency,
 		EventType:    req.EventType,
@@ -65,21 +64,74 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 	g.JSON(http.StatusCreated, dto.ToEventResponse(event))
 }
 
-func (e *EventHandler) searchEvents(g *gin.Context) {
-	name := g.Param("name")
-	name = DeSlash(name)
-}
 func (e *EventHandler) getEvent(g *gin.Context) {
-	name := g.Param("name")
-	name = DeSlash(name)
+	id := g.Param("id")
 
+	ctx, cancel := generateCtx()
+	defer cancel()
+
+	event, err := e.app.GetEvent(id, ctx)
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.JSON(http.StatusOK, dto.ToEventResponse(event))
+}
+
+func (e *EventHandler) getAllEvents(g *gin.Context) {
+	ctx, cancel := generateCtx()
+	defer cancel()
+
+	events, err := e.app.GetAllEvents(ctx)
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.JSON(http.StatusOK, dto.ToEventResponseSlice(events))
 }
 
 func (e *EventHandler) updateEvent(g *gin.Context) {
+	var req *dto.EventRequest
+
+	if err := g.ShouldBindJSON(&req); err != nil {
+		g.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind body of request"})
+		return
+	}
+
+	id := g.Param("id")
+
+	ctx, cancel := generateCtx()
+	defer cancel()
+
+	event, err := e.app.UpdateEvent(id, event.EventParams{
+		Title:        req.Title,
+		Description:  req.Description,
+		StartingDate: req.StartingDate,
+		Currency:     req.Currency,
+		EventType:    req.EventType,
+		SeatType:     req.SeatType,
+		VenueID:      req.VenueID,
+		Performers:   req.Performers,
+		Status:       req.Status,
+		Availability: req.Availability,
+		Visibility:   req.Visibility,
+	}, ctx)
+
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.JSON(http.StatusAccepted, dto.ToEventResponse(event))
+}
+func (e *EventHandler) deleteEvent(g *gin.Context) {
 	name := g.Param("name")
 	name = DeSlash(name)
 }
-func (e *EventHandler) deleteEvent(g *gin.Context) {
+
+func (e *EventHandler) searchEvents(g *gin.Context) {
 	name := g.Param("name")
 	name = DeSlash(name)
 }

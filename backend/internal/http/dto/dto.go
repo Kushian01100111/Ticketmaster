@@ -22,6 +22,7 @@ type EventRequest struct {
 
 	VenueID      string   `json:"venueId"`
 	Performers   []string `json:"artist,omitempty"`
+	Status       string   `json:"status,omitempty"`
 	Availability string   `json:"availability"`
 	Visibility   string   `json:"visibility"`
 }
@@ -42,30 +43,43 @@ type EventResponse struct {
 
 	Currency  string `json:"currency"`
 	EventType string `json:"eventType"`
-	SeatType  string `json:"SeatType"`
+	SeatType  string `json:"seatType"`
 
 	VenueID string                `json:"venueId"`
 	Venue   InternalVenueResponse `json:"venue"`
 
-	Performers []string `json:"artist,omitempty"`
-	Status     string   `json:"status"`
-	Visibility string   `json:"visibility,omitempty"`
+	Performers   []string `json:"artist,omitempty"`
+	Status       string   `json:"status"`
+	Availability string   `json:"availability"`
+	Visibility   string   `json:"visibility,omitempty"`
 }
 
 func ToEventResponse(event *event.Event) EventResponse {
 	return EventResponse{
-		ID:          event.ID.Hex(),
-		Title:       event.Title,
-		Description: event.Description,
-		Date:        event.Date,
-		SalesStart:  event.SalesStart,
-		EventType:   event.EventType,
-		SeatType:    event.SeatType,
-		VenueID:     event.VenueID.Hex(),
-		Venue:       InternalVenueResponse(event.Venue),
-		Performers:  event.Performers,
-		Visibility:  event.Visibility,
+		ID:           event.ID.Hex(),
+		Title:        event.Title,
+		Description:  event.Description,
+		Date:         event.Date,
+		SalesStart:   event.SalesStart,
+		Currency:     event.Currency,
+		EventType:    event.EventType,
+		SeatType:     event.SeatType,
+		VenueID:      event.VenueID.Hex(),
+		Venue:        InternalVenueResponse(event.Venue),
+		Performers:   event.Performers,
+		Status:       event.Status,
+		Availability: event.Availability,
+		Visibility:   event.Visibility,
 	}
+}
+
+func ToEventResponseSlice(events []event.Event) []EventResponse {
+	response := make([]EventResponse, len(events))
+
+	for i, event := range events {
+		response[i] = ToEventResponse(&event)
+	}
+	return response
 }
 
 /// Venue
@@ -95,14 +109,7 @@ func ToVenueSliceResponse(venues []venue.Venue) []VenueResponse {
 	response := make([]VenueResponse, len(venues))
 
 	for i, venue := range venues {
-		response[i] = VenueResponse{
-			ID:        venue.ID.Hex(),
-			Name:      venue.Name,
-			SeatType:  venue.SeatType,
-			SeatMapID: venue.SeatMapID.Hex(),
-			Address:   venue.Address,
-			Capacity:  venue.Capacity,
-		}
+		response[i] = ToVenueResponse(&venue)
 	}
 
 	return response

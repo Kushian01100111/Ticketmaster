@@ -107,14 +107,14 @@ func (s *mongoVenueStorage) GetByID(id bson.ObjectID, ctx context.Context) (*ven
 }
 
 func (s *mongoVenueStorage) GetAll(ctx context.Context) ([]venue.Venue, error) {
-	cur, err := s.db.Collection("venue").Find(ctx, bson.D{})
+	curr, err := s.db.Collection("venue").Find(ctx, bson.D{})
 	if err != nil {
 		return nil, err
 	}
-	defer cur.Close(ctx)
+	defer curr.Close(ctx)
 
 	var venues []venue.Venue
-	if err := cur.All(ctx, &venues); err != nil {
+	if err := curr.All(ctx, &venues); err != nil {
 		return nil, err
 	}
 	return venues, err

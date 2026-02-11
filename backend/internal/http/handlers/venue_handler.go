@@ -64,6 +64,7 @@ func (v *VenueHandler) updateVenue(g *gin.Context) {
 
 	if err := g.ShouldBindJSON(&req); err != nil {
 		g.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind body of request"})
+		return
 	}
 
 	id := g.Param("id")

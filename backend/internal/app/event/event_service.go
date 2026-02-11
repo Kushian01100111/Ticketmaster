@@ -25,8 +25,8 @@ type EventParams struct {
 	Title       string
 	Description string
 
-	Date       time.Time
-	SalesStart time.Time
+	StartingDate time.Time
+	SalesStart   time.Time
 
 	Currency  string
 	EventType string
@@ -53,11 +53,12 @@ type SearchParams struct {
 }
 
 type EventService interface {
-	SearchEvent(search SearchParams, ctx context.Context) ([]event.Event, error)
-	GetEvent(eventID string, ctx context.Context) (*event.Event, error)
+	GetEvent(idHex string, ctx context.Context) (*event.Event, error)
+	GetAllEvents(ctx context.Context) ([]event.Event, error)
 	CreateEvent(params EventParams, ctx context.Context) (*event.Event, error)
 	UpdateEvent(eventID string, params EventParams, ctx context.Context) (*event.Event, error)
 	DeleteEvent(eventID string, ctx context.Context) error
+	SearchEvent(search SearchParams, ctx context.Context) ([]event.Event, error)
 }
 
 type eventService struct {
@@ -72,21 +73,24 @@ func NewEventService(eventrepo repository.EventRepository, venuerepo repository.
 	}
 }
 
-func (s *eventService) SearchEvent(params SearchParams, ctx context.Context) ([]event.Event, error) {
-	var res []event.Event
-	return res, nil
+func (s *eventService) GetEvent(idHex string, ctx context.Context) (*event.Event, error) {
+	id, err := bson.ObjectIDFromHex(idHex)
+	if err != nil {
+		return nil, err
+	}
+	return s.eventRepo.GetByID(id, ctx)
 }
 
-func (s *eventService) GetEvent(name string, ctx context.Context) (*event.Event, error) {
-	return nil, nil
-}
+func (s *eventService) GetAllEvents(ctx context.Context) ([]event.Event, error) {
+	return s.eventRepo.GetAllEvents(ctx)
+} // <- Estaria faltando un filtro, así asegurar me que solo cierto eventos sean devueltos
 
 func (s *eventService) CreateEvent(params EventParams, ctx context.Context) (*event.Event, error) {
 	if err := validateParam(params); err != nil {
 		return nil, err
 	}
 
-	if err := validateDatesEvent(params.Date, params.SalesStart); err != nil {
+	if err := validateDatesEvent(params.StartingDate, params.SalesStart); err != nil {
 		return nil, err
 	}
 
@@ -103,7 +107,7 @@ func (s *eventService) CreateEvent(params EventParams, ctx context.Context) (*ev
 	Event := &event.Event{
 		Title:       params.Title,
 		Description: params.Description,
-		Date:        params.Date,
+		Date:        params.StartingDate,
 		SalesStart:  params.SalesStart,
 		Currency:    params.Currency,
 		EventType:   params.EventType,
@@ -133,6 +137,11 @@ func (s *eventService) UpdateEvent(name string, params EventParams, ctx context.
 
 func (s *eventService) DeleteEvent(name string, ctx context.Context) error {
 	return nil
+}
+
+func (s *eventService) SearchEvent(params SearchParams, ctx context.Context) ([]event.Event, error) {
+	var res []event.Event
+	return res, nil
 }
 
 ///
