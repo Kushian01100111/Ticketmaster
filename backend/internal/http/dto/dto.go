@@ -21,7 +21,7 @@ type EventRequest struct {
 	SeatType  string `json:"seatType"`
 
 	VenueID      string   `json:"venueId"`
-	Performers   []string `json:"artist,omitempty"`
+	Performers   []string `json:"performers,omitempty"`
 	Status       string   `json:"status,omitempty"`
 	Availability string   `json:"availability"`
 	Visibility   string   `json:"visibility"`
@@ -38,8 +38,8 @@ type EventResponse struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 
-	Date       time.Time `json:"startingDate"`
-	SalesStart time.Time `json:"salesStart"`
+	StartingDate time.Time `json:"startingDate"`
+	SalesStart   time.Time `json:"salesStart"`
 
 	Currency  string `json:"currency"`
 	EventType string `json:"eventType"`
@@ -48,7 +48,7 @@ type EventResponse struct {
 	VenueID string                `json:"venueId"`
 	Venue   InternalVenueResponse `json:"venue"`
 
-	Performers   []string `json:"artist,omitempty"`
+	Performers   []string `json:"performers,omitempty"`
 	Status       string   `json:"status"`
 	Availability string   `json:"availability"`
 	Visibility   string   `json:"visibility,omitempty"`
@@ -59,7 +59,7 @@ func ToEventResponse(event *event.Event) EventResponse {
 		ID:           event.ID.Hex(),
 		Title:        event.Title,
 		Description:  event.Description,
-		Date:         event.Date,
+		StartingDate: event.StartingDate,
 		SalesStart:   event.SalesStart,
 		Currency:     event.Currency,
 		EventType:    event.EventType,

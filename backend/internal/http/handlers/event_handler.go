@@ -109,6 +109,7 @@ func (e *EventHandler) updateEvent(g *gin.Context) {
 		Title:        req.Title,
 		Description:  req.Description,
 		StartingDate: req.StartingDate,
+		SalesStart:   req.SalesStart,
 		Currency:     req.Currency,
 		EventType:    req.EventType,
 		SeatType:     req.SeatType,
@@ -127,8 +128,17 @@ func (e *EventHandler) updateEvent(g *gin.Context) {
 	g.JSON(http.StatusAccepted, dto.ToEventResponse(event))
 }
 func (e *EventHandler) deleteEvent(g *gin.Context) {
-	name := g.Param("name")
-	name = DeSlash(name)
+	id := g.Param("id")
+
+	ctx, cancel := generateCtx()
+	defer cancel()
+
+	if err := e.app.DeleteEvent(id, ctx); err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.Status(http.StatusNoContent)
 }
 
 func (e *EventHandler) searchEvents(g *gin.Context) {

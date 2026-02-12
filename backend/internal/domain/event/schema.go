@@ -9,7 +9,7 @@ import (
 )
 
 func eventSchema() bson.D {
-	artistSchema := bson.D{
+	performersSchema := bson.D{
 		{Key: "bsonType", Value: "array"},
 		{Key: "uniqueItems", Value: true},
 		{Key: "items", Value: bson.D{
@@ -72,7 +72,7 @@ func eventSchema() bson.D {
 
 				{Key: "venueId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
 				{Key: "venue", Value: venueShema},
-				{Key: "artists", Value: artistSchema},
+				{Key: "performers", Value: performersSchema},
 				{Key: "status", Value: statusSchema},
 				{Key: "Availability", Value: availabilitySchema},
 				{Key: "visibility", Value: visibilitySchema},

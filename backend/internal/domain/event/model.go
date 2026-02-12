@@ -17,8 +17,8 @@ type Event struct {
 	Title       string        `bson:"name"`
 	Description string        `bson:"description"`
 
-	Date       time.Time `bson:"startAt"`
-	SalesStart time.Time `bson:"salesStarttAt"`
+	StartingDate time.Time `bson:"startingDate"`
+	SalesStart   time.Time `bson:"salesStarttAt"`
 
 	Currency  string `bson:"currency"`
 	EventType string `bson:"eventType"`
@@ -26,7 +26,7 @@ type Event struct {
 
 	VenueID      bson.ObjectID `bson:"venueId"`
 	Venue        Venue         `bson:"venue,omitempty"`
-	Performers   []string      `bson:"artists"`
+	Performers   []string      `bson:"performers"`
 	Status       string        `bson:"status"`
 	Availability string        `bson:"availability,"`
 	Visibility   string        `bson:"visibility"`

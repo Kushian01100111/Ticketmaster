@@ -10,10 +10,10 @@ import (
 )
 
 var (
-	ErrDuplicate       = errors.New("venue is a already created")
-	ErrUpdateDuplicate = errors.New("couldn't update venue because other venue has the same name or address")
-	ErrPassingID       = errors.New("unexpected id type")
-	ErrVenueNotFound   = errors.New("venue couldn't be found")
+	ErrDuplicateV       = errors.New("venue is a already created")
+	ErrUpdateDuplicateV = errors.New("couldn't update venue because other venue has the same name or address")
+	ErrPassingID        = errors.New("unexpected id type")
+	ErrVenueNotFound    = errors.New("venue couldn't be found")
 )
 
 type VenueRepository interface {
@@ -36,7 +36,7 @@ func (s *mongoVenueStorage) Create(venue *venue.Venue, ctx context.Context) (bso
 	res, err := s.db.Collection("venue").InsertOne(ctx, venue)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
-			return bson.NilObjectID, ErrDuplicate
+			return bson.NilObjectID, ErrDuplicateV
 		}
 		return bson.NilObjectID, err
 	}
@@ -67,7 +67,7 @@ func (s *mongoVenueStorage) Update(venue *venue.Venue, ctx context.Context) erro
 	res, err := s.db.Collection("venue").UpdateOne(ctx, filter, update)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
-			return ErrUpdateDuplicate
+			return ErrUpdateDuplicateV
 		}
 		return err
 	}

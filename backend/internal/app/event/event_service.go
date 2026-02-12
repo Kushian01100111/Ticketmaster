@@ -18,7 +18,8 @@ var (
 	ErrSeatType                = errors.New("invalid seat type")
 	ErrVisibility              = errors.New("invalid visibility type")
 	ErrAvailability            = errors.New("invalid availability type")
-	ErrSalesDateWithStartEvent = errors.New("sales date most be at lest a hour prior to the date of the start of the event")
+	ErrSalesDateWithStartEvent = errors.New("sale date must be at least one hour before the event start date.")
+	ErrProvidedID              = errors.New("provided id is not a valid objectID")
 )
 
 type EventParams struct {
@@ -56,8 +57,8 @@ type EventService interface {
 	GetEvent(idHex string, ctx context.Context) (*event.Event, error)
 	GetAllEvents(ctx context.Context) ([]event.Event, error)
 	CreateEvent(params EventParams, ctx context.Context) (*event.Event, error)
-	UpdateEvent(eventID string, params EventParams, ctx context.Context) (*event.Event, error)
-	DeleteEvent(eventID string, ctx context.Context) error
+	UpdateEvent(idHex string, params EventParams, ctx context.Context) (*event.Event, error)
+	DeleteEvent(idHex string, ctx context.Context) error
 	SearchEvent(search SearchParams, ctx context.Context) ([]event.Event, error)
 }
 
@@ -90,10 +91,6 @@ func (s *eventService) CreateEvent(params EventParams, ctx context.Context) (*ev
 		return nil, err
 	}
 
-	if err := validateDatesEvent(params.StartingDate, params.SalesStart); err != nil {
-		return nil, err
-	}
-
 	venueID, err := bson.ObjectIDFromHex(params.VenueID)
 	if err != nil {
 		return nil, err
@@ -105,14 +102,14 @@ func (s *eventService) CreateEvent(params EventParams, ctx context.Context) (*ev
 	}
 
 	Event := &event.Event{
-		Title:       params.Title,
-		Description: params.Description,
-		Date:        params.StartingDate,
-		SalesStart:  params.SalesStart,
-		Currency:    params.Currency,
-		EventType:   params.EventType,
-		SeatType:    params.SeatType,
-		VenueID:     venue.ID,
+		Title:        params.Title,
+		Description:  params.Description,
+		StartingDate: params.StartingDate,
+		SalesStart:   params.SalesStart,
+		Currency:     params.Currency,
+		EventType:    params.EventType,
+		SeatType:     params.SeatType,
+		VenueID:      venue.ID,
 		Venue: event.Venue{
 			Name:     venue.Name,
 			Address:  venue.Address,
@@ -124,18 +121,74 @@ func (s *eventService) CreateEvent(params EventParams, ctx context.Context) (*ev
 		Visibility:   params.Visibility,
 	}
 
-	if err := s.eventRepo.Create(Event, ctx); err != nil {
+	id, err := s.eventRepo.Create(Event, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	Event.ID = id
+	return Event, nil
+}
+
+func (s *eventService) UpdateEvent(idHex string, params EventParams, ctx context.Context) (*event.Event, error) {
+	//fmt.Printf("EventType raw: %q\n", params.EventType)
+	if err := validateParam(params); err != nil {
+		return nil, err
+	}
+
+	id, err := bson.ObjectIDFromHex(idHex)
+	if err != nil {
+		return nil, ErrProvidedID
+	}
+
+	venueID, err := bson.ObjectIDFromHex(params.VenueID)
+	if err != nil {
+		return nil, ErrProvidedID
+	}
+
+	venue, err := s.venueRepo.GetByID(venueID, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	Event := &event.Event{
+		ID:           id,
+		Title:        params.Title,
+		Description:  params.Description,
+		StartingDate: params.StartingDate,
+		SalesStart:   params.SalesStart,
+		Currency:     params.Currency,
+		EventType:    params.EventType,
+		SeatType:     params.SeatType,
+		VenueID:      venue.ID,
+		Venue: event.Venue{
+			Name:     venue.Name,
+			Address:  venue.Address,
+			Capacity: venue.Capacity,
+		},
+		Performers:   params.Performers,
+		Status:       params.Status,
+		Availability: params.Availability,
+		Visibility:   params.Visibility,
+	}
+
+	if err := s.eventRepo.Update(Event, ctx); err != nil {
 		return nil, err
 	}
 
 	return Event, nil
 }
 
-func (s *eventService) UpdateEvent(name string, params EventParams, ctx context.Context) (*event.Event, error) {
-	return nil, nil
-}
+func (s *eventService) DeleteEvent(idHex string, ctx context.Context) error {
+	id, err := bson.ObjectIDFromHex(idHex)
+	if err != nil {
+		return err
+	}
 
-func (s *eventService) DeleteEvent(name string, ctx context.Context) error {
+	if err := s.eventRepo.Delete(id, ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -150,7 +203,7 @@ func (s *eventService) SearchEvent(params SearchParams, ctx context.Context) ([]
 ///
 
 func validateDatesEvent(startEvent time.Time, startSales time.Time) error {
-	if startSales.Before(startEvent) || startEvent.Sub(startSales) >= time.Hour {
+	if startSales.After(startEvent) || startEvent.Sub(startSales) < time.Hour {
 		return ErrSalesDateWithStartEvent
 	}
 	return nil
@@ -162,6 +215,10 @@ func validateParam(params EventParams) error {
 	}
 
 	if err := validateString(params.Description); err != nil {
+		return err
+	}
+
+	if err := validateDatesEvent(params.StartingDate, params.SalesStart); err != nil {
 		return err
 	}
 
@@ -209,6 +266,7 @@ const (
 )
 
 func validateEventType(str string) error {
+	//fmt.Printf("EventType debug: %q len=%d bytes=%v\n", str, len(str), []byte(str))
 	switch EventType(str) {
 	case EventConsert, EventRecital, EventSolo, EventOpera:
 		return nil
@@ -231,7 +289,7 @@ func validateEventStatus(str string) error {
 	case EventStatusDraft, EventStatusPublished, EventStatusCancelled, EventStatusPostpond:
 		return nil
 	default:
-		return ErrEventType
+		return ErrStatus
 	}
 }
 

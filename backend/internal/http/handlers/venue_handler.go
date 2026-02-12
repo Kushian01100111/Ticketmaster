@@ -85,7 +85,7 @@ func (v *VenueHandler) updateVenue(g *gin.Context) {
 		return
 	}
 
-	g.JSON(http.StatusOK, dto.ToVenueResponse(venue))
+	g.JSON(http.StatusAccepted, dto.ToVenueResponse(venue))
 }
 
 func (v *VenueHandler) deleteVenue(g *gin.Context) {
