@@ -56,14 +56,14 @@ func eventSchema() bson.D {
 		Key: "$jsonSchema",
 		Value: bson.D{
 			{Key: "bsonType", Value: "object"},
-			{Key: "required", Value: bson.A{"name", "startAt", "description", "eventType", "venue", "status", "visibility", "salesStarttAt", "seatType"}},
+			{Key: "required", Value: bson.A{"title", "startingDate", "description", "eventType", "venueId", "status", "visibility", "salesStartingDate", "seatType"}},
 			{Key: "properties", Value: bson.D{
 				{Key: "_id", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
-				{Key: "name", Value: bson.D{{Key: "bsonType", Value: "string"}}},
+				{Key: "title", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 				{Key: "description", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 
-				{Key: "startAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
-				{Key: "salesStarttAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+				{Key: "startingDate", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+				{Key: "salesStartingDate", Value: bson.D{{Key: "bsonType", Value: "date"}}},
 
 				{Key: "currency", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 				{Key: "eventType", Value: eventTypeSchema},
@@ -115,11 +115,11 @@ func EnsureEventCollection(ctx context.Context, db *mongo.Database) error {
 	coll := db.Collection("event")
 	_, err = coll.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys: bson.D{{Key: "date", Value: 1}},
+			Keys: bson.D{{Key: "startingDate", Value: 1}},
 		},
 		{
-			Keys:    bson.D{{Key: "name", Value: 1}},
-			Options: options.Index().SetUnique(true).SetName("idx_eventName"),
+			Keys:    bson.D{{Key: "title", Value: 1}},
+			Options: options.Index().SetUnique(true).SetName("idx_titleName"),
 		},
 		{
 			Keys:    bson.D{{Key: "eventType", Value: 1}},

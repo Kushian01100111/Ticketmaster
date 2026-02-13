@@ -26,8 +26,8 @@ type EventParams struct {
 	Title       string
 	Description string
 
-	StartingDate time.Time
-	SalesStart   time.Time
+	StartingDate      time.Time
+	SalesStartingDate time.Time
 
 	Currency  string
 	EventType string
@@ -102,14 +102,14 @@ func (s *eventService) CreateEvent(params EventParams, ctx context.Context) (*ev
 	}
 
 	Event := &event.Event{
-		Title:        params.Title,
-		Description:  params.Description,
-		StartingDate: params.StartingDate,
-		SalesStart:   params.SalesStart,
-		Currency:     params.Currency,
-		EventType:    params.EventType,
-		SeatType:     params.SeatType,
-		VenueID:      venue.ID,
+		Title:             params.Title,
+		Description:       params.Description,
+		StartingDate:      params.StartingDate,
+		SalesStartingDate: params.SalesStartingDate,
+		Currency:          params.Currency,
+		EventType:         params.EventType,
+		SeatType:          params.SeatType,
+		VenueID:           venue.ID,
 		Venue: event.Venue{
 			Name:     venue.Name,
 			Address:  venue.Address,
@@ -152,15 +152,15 @@ func (s *eventService) UpdateEvent(idHex string, params EventParams, ctx context
 	}
 
 	Event := &event.Event{
-		ID:           id,
-		Title:        params.Title,
-		Description:  params.Description,
-		StartingDate: params.StartingDate,
-		SalesStart:   params.SalesStart,
-		Currency:     params.Currency,
-		EventType:    params.EventType,
-		SeatType:     params.SeatType,
-		VenueID:      venue.ID,
+		ID:                id,
+		Title:             params.Title,
+		Description:       params.Description,
+		StartingDate:      params.StartingDate,
+		SalesStartingDate: params.SalesStartingDate,
+		Currency:          params.Currency,
+		EventType:         params.EventType,
+		SeatType:          params.SeatType,
+		VenueID:           venue.ID,
 		Venue: event.Venue{
 			Name:     venue.Name,
 			Address:  venue.Address,
@@ -218,7 +218,7 @@ func validateParam(params EventParams) error {
 		return err
 	}
 
-	if err := validateDatesEvent(params.StartingDate, params.SalesStart); err != nil {
+	if err := validateDatesEvent(params.StartingDate, params.SalesStartingDate); err != nil {
 		return err
 	}
 

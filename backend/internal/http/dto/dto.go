@@ -13,9 +13,9 @@ type EventRequest struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 
-	StartingDate time.Time `json:"startingDate"`
-	SalesStart   time.Time `json:"salesStart"`
-	Currency     string    `json:"currency"`
+	StartingDate      time.Time `json:"startingDate"`
+	SalesStartingDate time.Time `json:"salesStartingDate"`
+	Currency          string    `json:"currency"`
 
 	EventType string `json:"eventType"`
 	SeatType  string `json:"seatType"`
@@ -38,8 +38,8 @@ type EventResponse struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 
-	StartingDate time.Time `json:"startingDate"`
-	SalesStart   time.Time `json:"salesStart"`
+	StartingDate      time.Time `json:"startingDate"`
+	SalesStartingDate time.Time `json:"salesStartingDate"`
 
 	Currency  string `json:"currency"`
 	EventType string `json:"eventType"`
@@ -56,20 +56,20 @@ type EventResponse struct {
 
 func ToEventResponse(event *event.Event) EventResponse {
 	return EventResponse{
-		ID:           event.ID.Hex(),
-		Title:        event.Title,
-		Description:  event.Description,
-		StartingDate: event.StartingDate,
-		SalesStart:   event.SalesStart,
-		Currency:     event.Currency,
-		EventType:    event.EventType,
-		SeatType:     event.SeatType,
-		VenueID:      event.VenueID.Hex(),
-		Venue:        InternalVenueResponse(event.Venue),
-		Performers:   event.Performers,
-		Status:       event.Status,
-		Availability: event.Availability,
-		Visibility:   event.Visibility,
+		ID:                event.ID.Hex(),
+		Title:             event.Title,
+		Description:       event.Description,
+		StartingDate:      event.StartingDate,
+		SalesStartingDate: event.SalesStartingDate,
+		Currency:          event.Currency,
+		EventType:         event.EventType,
+		SeatType:          event.SeatType,
+		VenueID:           event.VenueID.Hex(),
+		Venue:             InternalVenueResponse(event.Venue),
+		Performers:        event.Performers,
+		Status:            event.Status,
+		Availability:      event.Availability,
+		Visibility:        event.Visibility,
 	}
 }
 

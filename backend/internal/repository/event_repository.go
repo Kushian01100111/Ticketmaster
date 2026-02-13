@@ -51,14 +51,14 @@ func (s *mongoEventStorage) Create(event *event.Event, ctx context.Context) (bso
 func (s *mongoEventStorage) Update(event *event.Event, ctx context.Context) error {
 	filter := bson.M{"_id": event.ID}
 	set := bson.M{
-		"title":        event.Title,
-		"description":  event.Description,
-		"startingDate": event.StartingDate,
-		"salesStart":   event.SalesStart,
-		"currency":     event.Currency,
-		"eventType":    event.EventType,
-		"SeatType":     event.SeatType,
-		"venueId":      event.VenueID,
+		"title":             event.Title,
+		"description":       event.Description,
+		"startingDate":      event.StartingDate,
+		"salesStartingDate": event.SalesStartingDate,
+		"currency":          event.Currency,
+		"eventType":         event.EventType,
+		"SeatType":          event.SeatType,
+		"venueId":           event.VenueID,
 		"venue": bson.M{
 			"name":     event.Venue.Name,
 			"address":  event.Venue.Address,

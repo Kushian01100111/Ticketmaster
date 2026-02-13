@@ -42,18 +42,18 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 	defer cancel()
 
 	event, err := e.app.CreateEvent(event.EventParams{
-		Title:        req.Title,
-		Description:  req.Description,
-		StartingDate: req.StartingDate,
-		SalesStart:   req.SalesStart,
-		Currency:     req.Currency,
-		EventType:    req.EventType,
-		SeatType:     req.SeatType,
-		VenueID:      req.VenueID,
-		Performers:   req.Performers,
-		Status:       "draft",
-		Availability: req.Availability,
-		Visibility:   req.Visibility,
+		Title:             req.Title,
+		Description:       req.Description,
+		StartingDate:      req.StartingDate,
+		SalesStartingDate: req.SalesStartingDate,
+		Currency:          req.Currency,
+		EventType:         req.EventType,
+		SeatType:          req.SeatType,
+		VenueID:           req.VenueID,
+		Performers:        req.Performers,
+		Status:            "draft",
+		Availability:      req.Availability,
+		Visibility:        req.Visibility,
 	}, ctx)
 
 	if err != nil {
@@ -106,18 +106,18 @@ func (e *EventHandler) updateEvent(g *gin.Context) {
 	defer cancel()
 
 	event, err := e.app.UpdateEvent(id, event.EventParams{
-		Title:        req.Title,
-		Description:  req.Description,
-		StartingDate: req.StartingDate,
-		SalesStart:   req.SalesStart,
-		Currency:     req.Currency,
-		EventType:    req.EventType,
-		SeatType:     req.SeatType,
-		VenueID:      req.VenueID,
-		Performers:   req.Performers,
-		Status:       req.Status,
-		Availability: req.Availability,
-		Visibility:   req.Visibility,
+		Title:             req.Title,
+		Description:       req.Description,
+		StartingDate:      req.StartingDate,
+		SalesStartingDate: req.SalesStartingDate,
+		Currency:          req.Currency,
+		EventType:         req.EventType,
+		SeatType:          req.SeatType,
+		VenueID:           req.VenueID,
+		Performers:        req.Performers,
+		Status:            req.Status,
+		Availability:      req.Availability,
+		Visibility:        req.Visibility,
 	}, ctx)
 
 	if err != nil {
