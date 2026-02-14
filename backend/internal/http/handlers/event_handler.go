@@ -26,7 +26,7 @@ func (e *EventHandler) EventRoutes(r *gin.RouterGroup) {
 		context.GET("/:id", e.getEvent)
 		context.PATCH("/:id", e.updateEvent)
 		context.DELETE("/:id", e.deleteEvent)
-		context.GET("/search/:id", e.searchEvents)
+		context.GET("/search/:name", e.searchEvents)
 	}
 }
 
@@ -142,8 +142,36 @@ func (e *EventHandler) deleteEvent(g *gin.Context) {
 }
 
 func (e *EventHandler) searchEvents(g *gin.Context) {
+	var req *dto.EventSearchRequest
+
+	if err := g.ShouldBindJSON(&req); err != nil {
+		g.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	name := g.Param("name")
 	name = DeSlash(name)
+
+	ctx, cancel := generateCtx()
+	defer cancel()
+
+	events, err := e.app.SearchEvent(event.SearchParams{
+		Q:            name,
+		DateForm:     req.DateFrom,
+		DateTo:       req.DateTo,
+		Currency:     req.Currency,
+		VenueID:      req.VenueID,
+		Availability: req.Availability,
+		SortBy:       req.SortBy,
+		SortDir:      req.SortDir,
+	}, ctx)
+
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.JSON(http.StatusAccepted, dto.ToEventResponseSlice(events))
 }
 
 func DeSlash(str string) string {

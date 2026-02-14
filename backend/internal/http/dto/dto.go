@@ -9,6 +9,19 @@ import (
 
 //Event
 
+type EventSearchRequest struct {
+	Name     string    `json:"name"`
+	DateFrom time.Time `json:"dateFrom,omitempty"`
+	DateTo   time.Time `json:"dateTo,omitempty"`
+
+	Currency string `json:"currency,omitempty"`
+
+	VenueID      string `json:"venueId,omitempty"`
+	Availability string `json:"availability,omitempty"`
+	SortBy       string `json:"sortBy,omitempty"`
+	SortDir      int    `json:"sortDir,omitempty"`
+}
+
 type EventRequest struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
