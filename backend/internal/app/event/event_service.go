@@ -48,7 +48,7 @@ type SearchParams struct {
 	Currency string
 
 	VenueID      string
-	Availability []string
+	Availability string
 	SortBy       string
 	SortDir      int
 }
