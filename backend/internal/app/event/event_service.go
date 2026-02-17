@@ -193,6 +193,8 @@ func (s *eventService) DeleteEvent(idHex string, ctx context.Context) error {
 }
 
 func (s *eventService) SearchEvent(params SearchParams, ctx context.Context) ([]event.Event, error) {
+	// Comenzando el 18/02
+
 	var res []event.Event
 	return res, nil
 }
