@@ -21,7 +21,7 @@ type EventRepository interface {
 	Delete(id bson.ObjectID, ctx context.Context) error
 	GetByID(id bson.ObjectID, ctx context.Context) (*event.Event, error)
 	GetAllEvents(ctx context.Context) ([]event.Event, error)
-	SearchByName(name string, ctx context.Context) ([]event.Event, error)
+	SearchByParams(params *event.SearchEvent, ctx context.Context) ([]event.Event, error)
 }
 
 type mongoEventStorage struct {
@@ -126,7 +126,7 @@ func (s *mongoEventStorage) GetAllEvents(ctx context.Context) ([]event.Event, er
 	return events, err
 }
 
-func (s *mongoEventStorage) SearchByName(name string, ctx context.Context) ([]event.Event, error) {
+func (s *mongoEventStorage) SearchByParams(params *event.SearchEvent, ctx context.Context) ([]event.Event, error) {
 	var res []event.Event
 	return res, nil
 }

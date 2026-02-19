@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/event"
 	"github.com/Kushian01100111/Tickermaster/internal/http/dto"
@@ -26,7 +28,7 @@ func (e *EventHandler) EventRoutes(r *gin.RouterGroup) {
 		context.GET("/:id", e.getEvent)
 		context.PATCH("/:id", e.updateEvent)
 		context.DELETE("/:id", e.deleteEvent)
-		context.GET("/search/:name", e.searchEvents)
+		context.GET("/search", e.searchEvents)
 	}
 }
 
@@ -142,21 +144,17 @@ func (e *EventHandler) deleteEvent(g *gin.Context) {
 }
 
 func (e *EventHandler) searchEvents(g *gin.Context) {
-	var req *dto.EventSearchRequest
-
-	if err := g.ShouldBindJSON(&req); err != nil {
+	req, err := ProcessQueries(g)
+	if err != nil {
 		g.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	name := g.Param("name")
-	name = DeSlash(name)
 
 	ctx, cancel := generateCtx()
 	defer cancel()
 
 	events, err := e.app.SearchEvent(event.SearchParams{
-		Q:            name,
+		Q:            req.Name,
 		DateForm:     req.DateFrom,
 		DateTo:       req.DateTo,
 		Currency:     req.Currency,
@@ -172,6 +170,57 @@ func (e *EventHandler) searchEvents(g *gin.Context) {
 	}
 
 	g.JSON(http.StatusAccepted, dto.ToEventResponseSlice(events))
+}
+
+func ProcessQueries(g *gin.Context) (*dto.EventSearchRequest, error) {
+	var req dto.EventSearchRequest
+	layout := "2006-01-02 15:04:05"
+
+	if q := g.Query("q"); q != "" {
+		req.Name = q
+	}
+
+	if q := g.Query("from"); q != "" {
+		date, err := time.Parse(layout, q)
+		if err != nil {
+			return nil, err
+		}
+		req.DateFrom = date
+	}
+
+	if q := g.Query("to"); q != "" {
+		date, err := time.Parse(layout, q)
+		if err != nil {
+			return nil, err
+		}
+		req.DateTo = date
+	}
+
+	if q := g.Query("currency"); q != "" {
+		req.Currency = q
+	}
+
+	if q := g.Query("venue"); q != "" {
+		req.VenueID = q
+	}
+
+	if q := g.Query("availability"); q != "" {
+		req.Availability = q
+	}
+
+	if q := g.Query("sortBy"); q != "" {
+		req.SortBy = q
+	}
+
+	if q := g.Query("sortDir"); q != "" {
+		number, err := strconv.ParseInt(q, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		req.SortDir = int(number)
+	}
+
+	return &req, nil
 }
 
 func DeSlash(str string) string {

@@ -11,15 +11,15 @@ import (
 
 type EventSearchRequest struct {
 	Name     string    `json:"name"`
-	DateFrom time.Time `json:"dateFrom,omitempty"`
-	DateTo   time.Time `json:"dateTo,omitempty"`
+	DateFrom time.Time `json:"dateFrom"`
+	DateTo   time.Time `json:"dateTo"`
 
-	Currency string `json:"currency,omitempty"`
+	Currency string `json:"currency"`
 
-	VenueID      string `json:"venueId,omitempty"`
-	Availability string `json:"availability,omitempty"`
-	SortBy       string `json:"sortBy,omitempty"`
-	SortDir      int    `json:"sortDir,omitempty"`
+	VenueID      string `json:"venueId"`
+	Availability string `json:"availability"`
+	SortBy       string `json:"sortBy"`
+	SortDir      int    `json:"sortDir"`
 }
 
 type EventRequest struct {

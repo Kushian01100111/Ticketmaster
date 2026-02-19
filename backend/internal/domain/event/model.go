@@ -6,6 +6,19 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type SearchEvent struct {
+	Q        string    `bson:"name"`
+	DateFrom time.Time `bson:"from"`
+	DateTo   time.Time `bson:"to"`
+
+	Currency string `bson:"currency"`
+
+	VenueID      bson.ObjectID `bson:"venueId"`
+	Availability string        `bson:"availability"`
+	SortBy       string        `bson:"sortBy"`
+	SortDir      int           `bson:"sortDir"`
+}
+
 type Venue struct {
 	Name     string `bson:"name"`
 	Address  string `bson:"address"`

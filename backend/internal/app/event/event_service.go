@@ -9,6 +9,7 @@ import (
 	"github.com/Kushian01100111/Tickermaster/internal/domain/event"
 	"github.com/Kushian01100111/Tickermaster/internal/repository"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"golang.org/x/text/currency"
 )
 
 var (
@@ -20,6 +21,9 @@ var (
 	ErrAvailability            = errors.New("invalid availability type")
 	ErrSalesDateWithStartEvent = errors.New("sale date must be at least one hour before the event start date.")
 	ErrProvidedID              = errors.New("provided id is not a valid objectID")
+	ErrCurrency                = errors.New("invalid currency type")
+	ErrSortBy                  = errors.New("invalid sorted type")
+	ErrSortDir                 = errors.New("invalid sortdir type")
 )
 
 type EventParams struct {
@@ -193,10 +197,32 @@ func (s *eventService) DeleteEvent(idHex string, ctx context.Context) error {
 }
 
 func (s *eventService) SearchEvent(params SearchParams, ctx context.Context) ([]event.Event, error) {
-	// Comenzando el 18/02
-
 	var res []event.Event
-	return res, nil
+
+	if err := validateSearchParams(params); err != nil {
+		return res, nil
+	}
+
+	venueID, err := bson.ObjectIDFromHex(params.VenueID)
+	if err != nil {
+		return res, err
+	}
+
+	events, err := s.eventRepo.SearchByParams(&event.SearchEvent{
+		Q:            params.Q,
+		DateFrom:     params.DateForm,
+		DateTo:       params.DateTo,
+		Currency:     params.Currency,
+		VenueID:      venueID,
+		Availability: params.Availability,
+		SortBy:       params.SortBy,
+		SortDir:      params.SortDir,
+	}, ctx)
+	if err != nil {
+		return res, err
+	}
+
+	return events, nil
 }
 
 ///
@@ -208,6 +234,38 @@ func validateDatesEvent(startEvent time.Time, startSales time.Time) error {
 	if startSales.After(startEvent) || startEvent.Sub(startSales) < time.Hour {
 		return ErrSalesDateWithStartEvent
 	}
+	return nil
+}
+
+func validateSearchParams(params SearchParams) error {
+	if err := validateString(params.Q); err != nil {
+		return err
+	}
+
+	if err := validateDatesEvent(params.DateForm, params.DateTo); err != nil {
+		return err
+	}
+
+	if err := validateCurrency(params.Currency); err != nil {
+		return err
+	}
+
+	if err := validateString(params.VenueID); err != nil {
+		return err
+	}
+
+	if err := validateAvailabity(params.Availability); err != nil {
+		return err
+	}
+
+	if err := validateSortBy(params.SortBy); err != nil {
+		return err
+	}
+
+	if err := validateSortDir(params.SortDir); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -224,7 +282,7 @@ func validateParam(params EventParams) error {
 		return err
 	}
 
-	if err := validateString(params.Currency); err != nil {
+	if err := validateCurrency(params.Currency); err != nil {
 		return err
 	}
 
@@ -342,5 +400,52 @@ func validateAvailabity(str string) error {
 		return nil
 	default:
 		return ErrAvailability
+	}
+}
+
+//
+
+func validateCurrency(curr string) error {
+	c := strings.ToUpper(strings.TrimSpace(curr))
+	if len(c) != 3 {
+		return ErrCurrency
+	}
+	if _, err := currency.ParseISO(c); err != nil {
+		return ErrCurrency
+	}
+	return nil
+}
+
+type SortedBy string
+
+const (
+	SortedByTitle        SortedBy = "title"
+	SortedByDate         SortedBy = "date"
+	SortedByAvailability SortedBy = "availability"
+	SortedByVenue        SortedBy = "venue"
+)
+
+func validateSortBy(sort string) error {
+	switch SortedBy(sort) {
+	case SortedByTitle, SortedByDate, SortedByAvailability, SortedByVenue:
+		return nil
+	default:
+		return ErrSortBy
+	}
+}
+
+type SorDir int
+
+const (
+	SorDirDesc SorDir = 0
+	SorDirAsc  SorDir = 1
+)
+
+func validateSortDir(dir int) error {
+	switch SorDir(dir) {
+	case SorDirAsc, SorDirDesc:
+		return nil
+	default:
+		return ErrSortDir
 	}
 }
