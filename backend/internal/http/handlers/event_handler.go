@@ -177,7 +177,7 @@ func ProcessQueries(g *gin.Context) (*dto.EventSearchRequest, error) {
 	layout := "2006-01-02 15:04:05"
 
 	if q := g.Query("q"); q != "" {
-		req.Name = q
+		req.Name = DeSlash(q)
 	}
 
 	if q := g.Query("from"); q != "" {

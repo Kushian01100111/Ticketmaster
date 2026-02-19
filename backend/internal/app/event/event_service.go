@@ -203,13 +203,15 @@ func (s *eventService) SearchEvent(params SearchParams, ctx context.Context) ([]
 		return res, nil
 	}
 
+	Querie := strings.TrimSpace(params.Q)
+
 	venueID, err := bson.ObjectIDFromHex(params.VenueID)
 	if err != nil {
 		return res, err
 	}
 
 	events, err := s.eventRepo.SearchByParams(&event.SearchEvent{
-		Q:            params.Q,
+		Q:            Querie,
 		DateFrom:     params.DateForm,
 		DateTo:       params.DateTo,
 		Currency:     params.Currency,

@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/Kushian01100111/Tickermaster/internal/domain/event"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 var (
@@ -126,7 +128,70 @@ func (s *mongoEventStorage) GetAllEvents(ctx context.Context) ([]event.Event, er
 	return events, err
 }
 
-func (s *mongoEventStorage) SearchByParams(params *event.SearchEvent, ctx context.Context) ([]event.Event, error) {
+func (s *mongoEventStorage) SearchByParams(p *event.SearchEvent, ctx context.Context) ([]event.Event, error) {
+
+	filter := bson.M{}
+
+	if p.Currency != "" {
+		filter["currency"] = p.Currency
+	}
+
+	if p.VenueID.Hex() != "" {
+		filter["venueId"] = p.VenueID
+	}
+
+	if p.Availability != "" {
+		filter["availability"] = p.Availability
+	}
+
+	if !p.DateFrom.IsZero() || !p.DateTo.IsZero() {
+		date := bson.M{}
+		if !p.DateFrom.IsZero() {
+			date["$gte"] = p.DateFrom
+		}
+
+		if !p.DateTo.IsZero() {
+			date["$lte"] = p.DateTo
+		}
+
+		filter["startingDate"] = date
+	}
+
+	limit := 20
+
+	sortField := "startingDate"
+	if p.SortBy != "" {
+		sortField = p.SortBy
+	}
+
+	order := int32(-1)
+	if p.SortDir == 0 {
+		order = 1
+	}
+
+	if strings.TrimSpace(p.Q) != "" {
+		search := strings.TrimSpace(p.Q)
+		filter["$or"] = bson.A{
+			bson.M{"title": bson.M{"$regex": search, "$options": "i"}},
+			bson.M{"description": bson.M{"$regex": search, "$options": "i"}},
+			bson.M{"performers": bson.M{"$elemMatch": bson.M{"$regex": search, "$options": "i"}}},
+		}
+	}
+
+	opts := options.Find().
+		SetLimit(int64(limit)).
+		SetSort(bson.D{{Key: sortField, Value: order}, {Key: "_id", Value: order}})
+
+	cur, err := s.db.Collection("event").Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
 	var res []event.Event
+	if err := cur.All(ctx, &res); err != nil {
+		return nil, err
+	}
+
 	return res, nil
 }
