@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
-	"strings"
+	"regexp"
 
 	"github.com/Kushian01100111/Tickermaster/internal/domain/event"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -136,7 +136,7 @@ func (s *mongoEventStorage) SearchByParams(p *event.SearchEvent, ctx context.Con
 		filter["currency"] = p.Currency
 	}
 
-	if p.VenueID.Hex() != "" {
+	if !p.VenueID.IsZero() {
 		filter["venueId"] = p.VenueID
 	}
 
@@ -169,13 +169,22 @@ func (s *mongoEventStorage) SearchByParams(p *event.SearchEvent, ctx context.Con
 		order = 1
 	}
 
-	if strings.TrimSpace(p.Q) != "" {
-		search := strings.TrimSpace(p.Q)
-		filter["$or"] = bson.A{
-			bson.M{"title": bson.M{"$regex": search, "$options": "i"}},
-			bson.M{"description": bson.M{"$regex": search, "$options": "i"}},
-			bson.M{"performers": bson.M{"$elemMatch": bson.M{"$regex": search, "$options": "i"}}},
-		}
+	and := bson.A{}
+	for _, t := range p.Tokens {
+		t = regexp.QuoteMeta(t)
+		and = append(and, bson.M{
+			"$or": bson.A{
+				bson.M{"title": bson.M{"$regex": t, "$options": "i"}},
+				bson.M{"description": bson.M{"$regex": t, "$options": "i"}},
+				bson.M{"venue.name": bson.M{"$regex": t, "$options": "i"}},
+				bson.M{"venue.address": bson.M{"$regex": t, "$options": "i"}},
+				bson.M{"performers": bson.M{"$elemMatch": bson.M{"$regex": t, "$options": "i"}}},
+			},
+		})
+	}
+
+	if len(and) > 0 {
+		filter["$and"] = and
 	}
 
 	opts := options.Find().

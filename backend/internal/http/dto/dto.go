@@ -10,7 +10,7 @@ import (
 //Event
 
 type EventSearchRequest struct {
-	Name     string    `json:"name"`
+	Query    []string  `json:"Query"`
 	DateFrom time.Time `json:"dateFrom"`
 	DateTo   time.Time `json:"dateTo"`
 
@@ -78,11 +78,15 @@ func ToEventResponse(event *event.Event) EventResponse {
 		EventType:         event.EventType,
 		SeatType:          event.SeatType,
 		VenueID:           event.VenueID.Hex(),
-		Venue:             InternalVenueResponse(event.Venue),
-		Performers:        event.Performers,
-		Status:            event.Status,
-		Availability:      event.Availability,
-		Visibility:        event.Visibility,
+		Venue: InternalVenueResponse{
+			Name:     event.Venue.Name,
+			Address:  event.Venue.Address,
+			Capacity: event.Venue.Capacity,
+		},
+		Performers:   event.Performers,
+		Status:       event.Status,
+		Availability: event.Availability,
+		Visibility:   event.Visibility,
 	}
 }
 

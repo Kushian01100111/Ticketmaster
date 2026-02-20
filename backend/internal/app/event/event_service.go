@@ -24,6 +24,7 @@ var (
 	ErrCurrency                = errors.New("invalid currency type")
 	ErrSortBy                  = errors.New("invalid sorted type")
 	ErrSortDir                 = errors.New("invalid sortdir type")
+	ErrInvalidDateRange        = errors.New("invalid date range")
 )
 
 type EventParams struct {
@@ -45,7 +46,7 @@ type EventParams struct {
 }
 
 type SearchParams struct {
-	Q        string
+	Tokens   []string
 	DateForm time.Time
 	DateTo   time.Time
 
@@ -198,20 +199,22 @@ func (s *eventService) DeleteEvent(idHex string, ctx context.Context) error {
 
 func (s *eventService) SearchEvent(params SearchParams, ctx context.Context) ([]event.Event, error) {
 	var res []event.Event
+	var venueID bson.ObjectID
 
 	if err := validateSearchParams(params); err != nil {
-		return res, nil
-	}
-
-	Querie := strings.TrimSpace(params.Q)
-
-	venueID, err := bson.ObjectIDFromHex(params.VenueID)
-	if err != nil {
 		return res, err
 	}
 
+	if params.VenueID != "" {
+		venue, err := bson.ObjectIDFromHex(params.VenueID)
+		if err != nil {
+			return res, err
+		}
+		venueID = venue
+	}
+
 	events, err := s.eventRepo.SearchByParams(&event.SearchEvent{
-		Q:            Querie,
+		Tokens:       params.Tokens,
 		DateFrom:     params.DateForm,
 		DateTo:       params.DateTo,
 		Currency:     params.Currency,
@@ -240,28 +243,36 @@ func validateDatesEvent(startEvent time.Time, startSales time.Time) error {
 }
 
 func validateSearchParams(params SearchParams) error {
-	if err := validateString(params.Q); err != nil {
+	/*if err := validateString(params.Q); err != nil {
 		return err
 	}
-
-	if err := validateDatesEvent(params.DateForm, params.DateTo); err != nil {
-		return err
+	*/
+	if !params.DateForm.IsZero() && !params.DateTo.IsZero() && params.DateTo.Before(params.DateForm) {
+		return ErrInvalidDateRange
 	}
 
-	if err := validateCurrency(params.Currency); err != nil {
-		return err
+	if params.Currency != "" {
+		if err := validateCurrency(params.Currency); err != nil {
+			return err
+		}
 	}
 
-	if err := validateString(params.VenueID); err != nil {
-		return err
+	if params.VenueID != "" {
+		if err := validateString(params.VenueID); err != nil {
+			return err
+		}
 	}
 
-	if err := validateAvailabity(params.Availability); err != nil {
-		return err
+	if params.Availability != "" {
+		if err := validateAvailabity(params.Availability); err != nil {
+			return err
+		}
 	}
 
-	if err := validateSortBy(params.SortBy); err != nil {
-		return err
+	if params.SortBy != "" {
+		if err := validateSortBy(params.SortBy); err != nil {
+			return err
+		}
 	}
 
 	if err := validateSortDir(params.SortDir); err != nil {

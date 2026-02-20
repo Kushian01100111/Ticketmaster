@@ -7,7 +7,7 @@ import (
 )
 
 type SearchEvent struct {
-	Q        string    `bson:"name"`
+	Tokens   []string  `bson:"name"`
 	DateFrom time.Time `bson:"from"`
 	DateTo   time.Time `bson:"to"`
 

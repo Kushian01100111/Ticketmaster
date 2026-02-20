@@ -154,7 +154,7 @@ func (e *EventHandler) searchEvents(g *gin.Context) {
 	defer cancel()
 
 	events, err := e.app.SearchEvent(event.SearchParams{
-		Q:            req.Name,
+		Tokens:       req.Query,
 		DateForm:     req.DateFrom,
 		DateTo:       req.DateTo,
 		Currency:     req.Currency,
@@ -177,7 +177,7 @@ func ProcessQueries(g *gin.Context) (*dto.EventSearchRequest, error) {
 	layout := "2006-01-02 15:04:05"
 
 	if q := g.Query("q"); q != "" {
-		req.Name = DeSlash(q)
+		req.Query = getTokens(q)
 	}
 
 	if q := g.Query("from"); q != "" {
@@ -223,17 +223,11 @@ func ProcessQueries(g *gin.Context) (*dto.EventSearchRequest, error) {
 	return &req, nil
 }
 
-func DeSlash(str string) string {
-	var res strings.Builder
-	res.Grow(len(str))
+func getTokens(str string) []string {
+	res := strings.TrimSpace(str)
+	res = strings.ToLower(str)
 
-	for _, char := range str {
-		if char == '-' {
-			res.WriteRune(' ')
-		} else {
-			res.WriteRune(char)
-		}
-	}
+	res = strings.NewReplacer("-", " ", "_", " ", ".", " ", ",", " ").Replace(res)
 
-	return res.String()
+	return strings.Fields(res)
 }
