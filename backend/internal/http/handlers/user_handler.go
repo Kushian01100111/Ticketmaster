@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/Kushian01100111/Tickermaster/internal/app/user"
+	"github.com/Kushian01100111/Tickermaster/internal/http/dto"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,23 +19,39 @@ func NewUserHandler(svc user.UserService) *UserHandler {
 func (e *UserHandler) UserRoutes(r *gin.RouterGroup) {
 	context := r.Group("/user")
 	{
-		context.PUT("", e.createUser)
 		context.GET("", e.getAllUsers)
+		context.POST("/create", e.createUser)
+		context.GET("/:userId", e.getUser)
+		context.PATCH("/:userId", e.updateUser)
+		context.DELETE("/:userid", e.deleteUser)
 		context.POST("/login", e.login)
-		context.POST("/easyLogin", e.easyLogin)
-		context.PUT("/createEasyLogin", e.createEasyLoginUser)
-		context.GET("/:id", e.getUser)
-		context.PATCH("/:id", e.updateUser)
-		context.DELETE("/:id", e.deleteUser)
+		context.POST("/requestToken", e.requestToken)
+		context.POST("/authenticateToken", e.loginPasswordless)
+		context.POST("/create/requestToken", e.signUpRequestToken)
+		context.POST("/create/authenticateToken", e.signUpPasswordless)
 	}
 
 }
 
-func (e *UserHandler) createUser(g *gin.Context)          {}
-func (e *UserHandler) getAllUsers(g *gin.Context)         {}
-func (e *UserHandler) login(g *gin.Context)               {}
-func (e *UserHandler) easyLogin(g *gin.Context)           {}
-func (e *UserHandler) createEasyLoginUser(g *gin.Context) {}
-func (e *UserHandler) getUser(g *gin.Context)             {}
-func (e *UserHandler) updateUser(g *gin.Context)          {}
-func (e *UserHandler) deleteUser(g *gin.Context)          {}
+func (u *UserHandler) getAllUsers(g *gin.Context) {
+	ctx, cancel := generateCtx()
+	defer cancel()
+
+	users, err := u.app.GetAllUser(ctx)
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.JSON(http.StatusOK, dto.ToUserSliceResponse(users))
+}
+func (u *UserHandler) createUser(g *gin.Context) {}
+func (u *UserHandler) getUser(g *gin.Context)    {}
+func (u *UserHandler) updateUser(g *gin.Context) {}
+func (u *UserHandler) deleteUser(g *gin.Context) {}
+func (u *UserHandler) login(g *gin.Context)      {}
+
+func (u *UserHandler) requestToken(g *gin.Context)       {}
+func (u *UserHandler) loginPasswordless(g *gin.Context)  {}
+func (u *UserHandler) signUpRequestToken(g *gin.Context) {}
+func (u *UserHandler) signUpPasswordless(g *gin.Context) {}

@@ -10,11 +10,11 @@ type User struct {
 	ID     bson.ObjectID `bson:"_id,omitempty"`
 	UserID bson.ObjectID `bson:"userID,omitempty"`
 
-	UserName string `bson:"userName"`
 	Email    string `bson:"email"`
+	Role     string `bson:"role"`
 	Password string `bson:"password,omitempty"`
 
-	EasyLogin        bool      `bson:"easyLogin,omitempty"`
+	PasswordLess     bool      `bson:"passwordless"`
 	FailedLoginCount int32     `bson:"failedLoginCount,omitempty"`
 	LastFailedLogin  time.Time `bson:"lastFailedLogin,omitempty"`
 

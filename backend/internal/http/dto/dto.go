@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/domain/event"
+	"github.com/Kushian01100111/Tickermaster/internal/domain/user"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/venue"
 )
 
@@ -141,4 +142,33 @@ func ToVenueResponse(venue *venue.Venue) VenueResponse {
 		Address:   venue.Address,
 		Capacity:  venue.Capacity,
 	}
+}
+
+// User
+
+type UserRequest struct {
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	EasyLogin bool   `json:"easyLogin"`
+}
+
+type PasswordlessRequest struct {
+	Email string `json:"email"`
+}
+
+type UserResponse struct {
+}
+
+func ToUserResponse(user *user.User) UserResponse {
+	return UserResponse{}
+}
+
+func ToUserSliceResponse(users []user.User) []UserResponse {
+	response := make([]UserResponse, len(users))
+
+	for i, user := range users {
+		response[i] = ToUserResponse(&user)
+	}
+
+	return response
 }

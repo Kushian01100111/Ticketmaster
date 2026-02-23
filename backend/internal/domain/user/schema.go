@@ -17,19 +17,25 @@ func userSchema() bson.D {
 		}},
 	}
 
+	roleSchema := bson.D{
+		{Key: "bsonType", Value: "string"},
+		{Key: "enum", Value: bson.A{"costumer", "editor", "admin"}},
+	}
+
 	return bson.D{{
 		Key: "$jsonSchema",
 		Value: bson.D{
 			{Key: "bsonType", Value: "object"},
-			{Key: "required", Value: bson.A{"userID", "userName", "email", "easyLogin", "bookedEvents"}},
+			{Key: "required", Value: bson.A{"email", "role", "passwordless"}},
 			{Key: "properties", Value: bson.D{
 				{Key: "_id", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
 				{Key: "userId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
-				{Key: "userName", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 				{Key: "email", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 				{Key: "password", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 
-				{Key: "easyLogin", Value: bson.D{{Key: "bsonType", Value: "bool"}}},
+				{Key: "passwordless", Value: bson.D{{Key: "bsonType", Value: "bool"}}},
+
+				{Key: "role", Value: roleSchema},
 
 				{Key: "failedLoginCount", Value: bson.D{{Key: "bsonType", Value: "int"}}},
 				{Key: "bookedEvents", Value: artistSchema},
