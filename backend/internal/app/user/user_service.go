@@ -7,7 +7,7 @@ import (
 	"github.com/Kushian01100111/Tickermaster/internal/repository"
 )
 
-// Falta construir las estructuras -> 26/02
+// Falta construir las estructuras -> 28/02
 type UserParams struct{}
 
 type UpdateParams struct{}
