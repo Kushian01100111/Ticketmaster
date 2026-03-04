@@ -16,28 +16,22 @@ func NewUserHandler(svc user.UserService) *UserHandler {
 	return &UserHandler{app: svc}
 }
 
-func (e *UserHandler) UserRoutes(r *gin.RouterGroup) {
+func (u *UserHandler) UserRoutes(r *gin.RouterGroup) {
 	context := r.Group("/user")
 	{
-		context.GET("", e.getAllUsers)
-		context.POST("/create", e.createUser)
-		context.GET("/:userId", e.getUser)
-		context.PATCH("/:userId", e.updateUser)
-		context.DELETE("/:userid", e.deleteUser)
-		context.POST("/login", e.login)
-		context.POST("/requestToken", e.requestToken)
-		context.POST("/authenticateToken", e.loginPasswordless)
-		context.POST("/create/requestToken", e.signUpRequestToken)
-		context.POST("/create/authenticateToken", e.signUpPasswordless)
+		context.GET("", u.getAllUsers)
+		context.PUT("", u.createUser)
+		context.GET("/:id", u.getUser)
+		context.PATCH("/:id", u.updateUser)
+		context.DELETE("/:id", u.deleteUser)
 	}
-
 }
 
 func (u *UserHandler) getAllUsers(g *gin.Context) {
 	ctx, cancel := generateCtx()
 	defer cancel()
 
-	users, err := u.app.GetAllUser(ctx)
+	users, err := u.app.GetAllUsers(ctx)
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -45,13 +39,85 @@ func (u *UserHandler) getAllUsers(g *gin.Context) {
 
 	g.JSON(http.StatusOK, dto.ToUserSliceResponse(users))
 }
-func (u *UserHandler) createUser(g *gin.Context) {}
-func (u *UserHandler) getUser(g *gin.Context)    {}
-func (u *UserHandler) updateUser(g *gin.Context) {}
-func (u *UserHandler) deleteUser(g *gin.Context) {}
-func (u *UserHandler) login(g *gin.Context)      {}
 
-func (u *UserHandler) requestToken(g *gin.Context)       {}
-func (u *UserHandler) loginPasswordless(g *gin.Context)  {}
-func (u *UserHandler) signUpRequestToken(g *gin.Context) {}
-func (u *UserHandler) signUpPasswordless(g *gin.Context) {}
+func (u *UserHandler) createUser(g *gin.Context) {
+	var req *dto.UserRequest
+
+	if err := g.ShouldBindJSON(&req); err != nil {
+		g.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind body of request"})
+		return
+	}
+
+	ctx, cancel := generateCtx()
+	defer cancel()
+
+	user, err := u.app.CreateUser(user.UserParams{
+		Email:      req.Email,
+		Role:       req.Role,
+		Password:   req.Password,
+		AuthMethod: req.AuthMethod,
+	}, ctx)
+
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.JSON(http.StatusCreated, dto.ToUserResponse(user))
+}
+
+func (u *UserHandler) getUser(g *gin.Context) {
+	id := g.Param("id")
+
+	ctx, cancel := generateCtx()
+	defer cancel()
+
+	user, err := u.app.GetUser(id, ctx)
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.JSON(http.StatusOK, dto.ToUserResponse(user))
+}
+
+func (u *UserHandler) updateUser(g *gin.Context) {
+	var req *dto.UpdateUserRequest
+
+	if err := g.ShouldBindJSON(&req); err != nil {
+		g.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind body of request"})
+		return
+	}
+
+	id := g.Param("id")
+
+	ctx, cancel := generateCtx()
+	defer cancel()
+
+	user, err := u.app.UpdateUser(id, user.UpdateUserParams{
+		Role:        req.Role,
+		Password:    req.Password,
+		AuthMethods: req.AuthMethods,
+	}, ctx)
+
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.JSON(http.StatusAccepted, dto.ToUserResponse(user))
+}
+
+func (u *UserHandler) deleteUser(g *gin.Context) {
+	id := g.Param("id")
+
+	ctx, cancel := generateCtx()
+	defer cancel()
+
+	if err := u.app.DeleteUser(id, ctx); err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.Status(http.StatusNoContent)
+}

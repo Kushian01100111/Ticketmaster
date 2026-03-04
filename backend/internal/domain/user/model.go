@@ -7,16 +7,16 @@ import (
 )
 
 type User struct {
-	ID     bson.ObjectID `bson:"_id,omitempty"`
-	UserID bson.ObjectID `bson:"userID,omitempty"`
+	ID bson.ObjectID `bson:"_id,omitempty"`
 
-	Email    string `bson:"email"`
-	Role     string `bson:"role"`
-	Password string `bson:"password,omitempty"`
+	Email string `bson:"email"`
+	Role  string `bson:"role"`
 
-	PasswordLess     bool      `bson:"passwordless"`
-	FailedLoginCount int32     `bson:"failedLoginCount,omitempty"`
-	LastFailedLogin  time.Time `bson:"lastFailedLogin,omitempty"`
+	PasswordHash *string  `bson:"passwordHash,omitempty"`
+	PasswordLess []string `bson:"authMethods"`
+
+	FailedLoginCount int32      `bson:"failedLoginCount,omitempty"`
+	LastFailedLogin  *time.Time `bson:"lastFailedLogin,omitempty"`
 
 	BookedEvents []bson.ObjectID `bson:"bookedEvents,omitempty"`
 }

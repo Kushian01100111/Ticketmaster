@@ -154,7 +154,7 @@ func (e *EventHandler) searchEvents(g *gin.Context) {
 	defer cancel()
 
 	events, err := e.app.SearchEvent(event.SearchParams{
-		Tokens:       req.Query, // Tener en cuenta en el futuro searchTexts noramlizados para todos los eventos 
+		Tokens:       req.Query, // Tener en cuenta en el futuro searchTexts noramlizados para todos los eventos
 		DateForm:     req.DateFrom,
 		DateTo:       req.DateTo,
 		Currency:     req.Currency,

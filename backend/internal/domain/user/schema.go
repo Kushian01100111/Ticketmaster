@@ -9,7 +9,7 @@ import (
 )
 
 func userSchema() bson.D {
-	artistSchema := bson.D{
+	eventsSchema := bson.D{
 		{Key: "bsonType", Value: "array"},
 		{Key: "uniqueItems", Value: true},
 		{Key: "items", Value: bson.D{
@@ -22,6 +22,16 @@ func userSchema() bson.D {
 		{Key: "enum", Value: bson.A{"costumer", "editor", "admin"}},
 	}
 
+	authMethods := bson.D{
+		{Key: "bsonType", Value: "array"},
+		{Key: "uniqueItems", Value: true},
+		{Key: "items", Value: bson.D{
+			{Key: "bsonType", Value: "string"},
+			{Key: "enum", Value: bson.A{"password", "email_otp"}},
+		}},
+		{Key: "minItems", Value: 1},
+	}
+
 	return bson.D{{
 		Key: "$jsonSchema",
 		Value: bson.D{
@@ -29,16 +39,15 @@ func userSchema() bson.D {
 			{Key: "required", Value: bson.A{"email", "role", "passwordless"}},
 			{Key: "properties", Value: bson.D{
 				{Key: "_id", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
-				{Key: "userId", Value: bson.D{{Key: "bsonType", Value: "objectId"}}},
 				{Key: "email", Value: bson.D{{Key: "bsonType", Value: "string"}}},
-				{Key: "password", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 
-				{Key: "passwordless", Value: bson.D{{Key: "bsonType", Value: "bool"}}},
+				{Key: "passwordHash", Value: bson.D{{Key: "bsonType", Value: "string"}}},
+				{Key: "passwordless", Value: authMethods},
 
 				{Key: "role", Value: roleSchema},
 
 				{Key: "failedLoginCount", Value: bson.D{{Key: "bsonType", Value: "int"}}},
-				{Key: "bookedEvents", Value: artistSchema},
+				{Key: "bookedEvents", Value: eventsSchema},
 				{Key: "lastFailedLogin", Value: bson.D{{Key: "bsonType", Value: "date"}}},
 			}},
 		},
@@ -80,8 +89,8 @@ func EnsureVenueCollection(ctx context.Context, db *mongo.Database) error {
 	coll := db.Collection("user")
 	_, err = coll.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys:    bson.D{{Key: "userId", Value: 1}},
-			Options: options.Index().SetUnique(true),
+			Keys:    bson.D{{Key: "email", Value: 1}},
+			Options: options.Index().SetUnique(true).SetName("idx_email_unique"),
 		},
 	})
 

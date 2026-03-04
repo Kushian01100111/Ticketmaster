@@ -147,9 +147,16 @@ func ToVenueResponse(venue *venue.Venue) VenueResponse {
 // User
 
 type UserRequest struct {
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-	EasyLogin bool   `json:"easyLogin"`
+	Email      string `json:"email"`
+	Role       string `json:"role"`
+	Password   string `json:"password"`
+	AuthMethod string `json:"authMethod"`
+}
+
+type UpdateUserRequest struct {
+	Role        string   `json:"role"`
+	Password    string   `json:"password"`
+	AuthMethods []string `json:"authMethod"`
 }
 
 type PasswordlessRequest struct {
