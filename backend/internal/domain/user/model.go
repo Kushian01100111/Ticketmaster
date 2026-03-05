@@ -13,7 +13,7 @@ type User struct {
 	Role  string `bson:"role"`
 
 	PasswordHash *string  `bson:"passwordHash,omitempty"`
-	PasswordLess []string `bson:"authMethods"`
+	AuthMethods  []string `bson:"authMethods"`
 
 	FailedLoginCount int32      `bson:"failedLoginCount,omitempty"`
 	LastFailedLogin  *time.Time `bson:"lastFailedLogin,omitempty"`

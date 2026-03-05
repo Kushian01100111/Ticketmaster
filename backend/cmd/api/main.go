@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/event"
+	"github.com/Kushian01100111/Tickermaster/internal/app/user"
 	"github.com/Kushian01100111/Tickermaster/internal/app/venue"
 	"github.com/Kushian01100111/Tickermaster/internal/config"
 	http1 "github.com/Kushian01100111/Tickermaster/internal/http"
@@ -42,16 +43,20 @@ func main() {
 
 	eventRepo := repository.NewEventRepository(db.Database(config.DB))
 	venueRepo := repository.NewVenueRepository(db.Database(config.DB))
+	userRepo := repository.NewUserRepository(db.Database(config.DB))
 
 	eventSvc := event.NewEventService(eventRepo, venueRepo)
 	venueSvc := venue.NewVenueService(venueRepo)
+	userSvc := user.NewUserRepository(userRepo)
 
 	eventHandler := handlers.NewEventHandler(eventSvc)
 	venueHandler := handlers.NewVenueHandler(venueSvc)
+	userHandler := handlers.NewUserHandler(userSvc)
 
 	r := http1.NewHandler(http1.RouterDep{
 		EventDep: eventHandler,
-		VenueDep: venueHandler},
+		VenueDep: venueHandler,
+		UserDep:  userHandler},
 		config)
 
 	srv := &http.Server{

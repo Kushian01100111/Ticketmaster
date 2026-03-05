@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/mail"
 	"strings"
+	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/domain/user"
 	"github.com/Kushian01100111/Tickermaster/internal/repository"
@@ -31,6 +32,11 @@ type UpdateUserParams struct {
 	Role        string
 	Password    string
 	AuthMethods []string
+
+	FailedLoginCount int32
+	LastFailedLogin  *time.Time
+
+	BookedEvents []string
 }
 
 type UserService interface {
@@ -60,6 +66,8 @@ func (s userService) CreateUser(params UserParams, ctx context.Context) (*user.U
 		return nil, err
 	}
 
+	failedLoginDate := time.Now().Add(-1 * time.Hour)
+
 	var User *user.User
 
 	if params.AuthMethod == "password" {
@@ -70,16 +78,18 @@ func (s userService) CreateUser(params UserParams, ctx context.Context) (*user.U
 
 		temp := string(hash)
 		User = &user.User{
-			Email:        params.Email,
-			Role:         params.Role,
-			PasswordHash: &temp,
-			AuthMethods:  []string{params.AuthMethod},
+			Email:           params.Email,
+			Role:            params.Role,
+			PasswordHash:    &temp,
+			AuthMethods:     []string{params.AuthMethod},
+			LastFailedLogin: &failedLoginDate,
 		}
 	} else if params.AuthMethod == "email_otp" {
 		User = &user.User{
-			Email:       params.Email,
-			Role:        params.Role,
-			AuthMethods: []string{params.AuthMethod},
+			Email:           params.Email,
+			Role:            params.Role,
+			AuthMethods:     []string{params.AuthMethod},
+			LastFailedLogin: &failedLoginDate,
 		}
 	}
 
@@ -122,15 +132,24 @@ func (s userService) UpdateUser(idhex string, params UpdateUserParams, ctx conte
 		temp := string(hash)
 
 		User = &user.User{
-			Role:         params.Role,
-			PasswordHash: &temp,
-			AuthMethods:  params.AuthMethods,
+			Role:             params.Role,
+			PasswordHash:     &temp,
+			AuthMethods:      params.AuthMethods,
+			FailedLoginCount: params.FailedLoginCount,
+			LastFailedLogin:  params.LastFailedLogin,
 		}
 	} else {
 		User = &user.User{
-			Role:        params.Role,
-			AuthMethods: params.AuthMethods,
+			Role:             params.Role,
+			AuthMethods:      params.AuthMethods,
+			FailedLoginCount: params.FailedLoginCount,
+			LastFailedLogin:  params.LastFailedLogin,
 		}
+	}
+
+	User, err = bookedEventsIDhexToObjectId(User, params)
+	if err != nil {
+		return nil, err
 	}
 
 	User.ID = id
@@ -197,6 +216,21 @@ func validateUpdateParam(params UpdateUserParams) error {
 	return nil
 }
 
+func bookedEventsIDhexToObjectId(User *user.User, params UpdateUserParams) (*user.User, error) {
+	bookedEvents := make([]bson.ObjectID, len(params.BookedEvents))
+
+	for i, event := range params.BookedEvents {
+		eventId, err := bson.ObjectIDFromHex(event)
+		if err != nil {
+			return nil, err
+		}
+		bookedEvents[i] = eventId
+	}
+
+	User.BookedEvents = bookedEvents
+	return User, nil
+}
+
 func validateEmail(email string) error {
 	addr, err := mail.ParseAddress(email)
 	if err != nil {
@@ -253,7 +287,7 @@ func validateAuthMethod(method string) error {
 }
 
 func validateAuthMethods(methods []string) error {
-	if len(methods) > 0 && len(methods) <= 2 {
+	if len(methods) > 2 {
 		return ErrAuthMethodLen
 	}
 

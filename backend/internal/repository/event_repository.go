@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	ErrDuplicateE       = errors.New("event is a already created")
+	ErrDuplicateE       = errors.New("event is already created")
 	ErrUpdateDuplicateE = errors.New("couldn't update event because other event has the same title or address")
 	ErrEventNotFound    = errors.New("event couldn't be found")
 )

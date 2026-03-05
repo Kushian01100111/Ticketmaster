@@ -6,6 +6,7 @@ import (
 	"github.com/Kushian01100111/Tickermaster/internal/domain/event"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/user"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/venue"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 //Event
@@ -154,9 +155,12 @@ type UserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Role        string   `json:"role"`
-	Password    string   `json:"password"`
-	AuthMethods []string `json:"authMethod"`
+	Role             string     `json:"role"`
+	Password         string     `json:"password"`
+	AuthMethods      []string   `json:"authMethods"`
+	FailedLoginCount int32      `json:"failedLoginCount"`
+	LastFailedLogin  *time.Time `json:"lastFailedLogin"`
+	BookedEvents     []string   `json:"bookedEvents"`
 }
 
 type PasswordlessRequest struct {
@@ -164,10 +168,23 @@ type PasswordlessRequest struct {
 }
 
 type UserResponse struct {
+	ID               string     `json:"id"`
+	Email            string     `json:"email"`
+	AuthMethods      []string   `json:"authMethods"`
+	FailedLoginCount int32      `json:"failedLoginCount"`
+	LastFailedLogin  *time.Time `json:"lastFailedLogin"`
+	BookedEvents     []string   `json:"bookedEvents"`
 }
 
 func ToUserResponse(user *user.User) UserResponse {
-	return UserResponse{}
+	return UserResponse{
+		ID:               user.ID.Hex(),
+		Email:            user.Email,
+		AuthMethods:      user.AuthMethods,
+		FailedLoginCount: user.FailedLoginCount,
+		LastFailedLogin:  user.LastFailedLogin,
+		BookedEvents:     bookedEventsObjectToHex(user.BookedEvents),
+	}
 }
 
 func ToUserSliceResponse(users []user.User) []UserResponse {
@@ -178,4 +195,13 @@ func ToUserSliceResponse(users []user.User) []UserResponse {
 	}
 
 	return response
+}
+
+func bookedEventsObjectToHex(events []bson.ObjectID) []string {
+	res := make([]string, len(events))
+
+	for i, event := range events {
+		res[i] = event.Hex()
+	}
+	return res
 }

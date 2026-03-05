@@ -14,6 +14,7 @@ import (
 type RouterDep struct {
 	EventDep *handlers.EventHandler
 	VenueDep *handlers.VenueHandler
+	UserDep  *handlers.UserHandler
 }
 
 func NewHandler(dep RouterDep, config *config.Config) http.Handler {
@@ -36,6 +37,7 @@ func NewHandler(dep RouterDep, config *config.Config) http.Handler {
 	{
 		dep.EventDep.EventRoutes(api)
 		dep.VenueDep.VenueRoutes(api)
+		dep.UserDep.UserRoutes(api)
 	}
 
 	return r

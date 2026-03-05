@@ -95,9 +95,12 @@ func (u *UserHandler) updateUser(g *gin.Context) {
 	defer cancel()
 
 	user, err := u.app.UpdateUser(id, user.UpdateUserParams{
-		Role:        req.Role,
-		Password:    req.Password,
-		AuthMethods: req.AuthMethods,
+		Role:             req.Role,
+		Password:         req.Password,
+		AuthMethods:      req.AuthMethods,
+		FailedLoginCount: req.FailedLoginCount,
+		LastFailedLogin:  req.LastFailedLogin,
+		BookedEvents:     req.BookedEvents,
 	}, ctx)
 
 	if err != nil {
