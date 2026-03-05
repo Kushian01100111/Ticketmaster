@@ -47,7 +47,7 @@ func main() {
 
 	eventSvc := event.NewEventService(eventRepo, venueRepo)
 	venueSvc := venue.NewVenueService(venueRepo)
-	userSvc := user.NewUserRepository(userRepo)
+	userSvc := user.NewUserService(userRepo)
 
 	eventHandler := handlers.NewEventHandler(eventSvc)
 	venueHandler := handlers.NewVenueHandler(venueSvc)
