@@ -24,6 +24,7 @@ func (u *UserHandler) UserRoutes(r *gin.RouterGroup) {
 		context.GET("/:id", u.getUser)
 		context.PATCH("/:id", u.updateUser)
 		context.DELETE("/:id", u.deleteUser)
+		context.GET("/byEmail/:id")
 	}
 }
 
@@ -123,4 +124,8 @@ func (u *UserHandler) deleteUser(g *gin.Context) {
 	}
 
 	g.Status(http.StatusNoContent)
+}
+
+func (u *UserHandler) getUserByEmail(g *gin.Context) {
+
 }

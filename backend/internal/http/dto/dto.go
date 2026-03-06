@@ -9,6 +9,12 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+//Auth
+
+type LoginRequest struct{}
+
+type AuthResult struct{}
+
 //Event
 
 type EventSearchRequest struct {
