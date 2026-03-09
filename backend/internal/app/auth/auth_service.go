@@ -13,6 +13,7 @@ type AuthService interface {
 	Refresh(ctx context.Context) error
 	Logout(ctx context.Context) error
 	SignupRequest(ctx context.Context) error
+	
 	SignupVeriry(ctx context.Context) error
 	
 	LoginRequest(ctx context.Context) error
