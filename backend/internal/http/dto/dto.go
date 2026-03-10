@@ -11,9 +11,17 @@ import (
 
 //Auth
 
-type LoginRequest struct{}
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
-type AuthResult struct{}
+type AuthResult struct {
+	User         UserResponse `json:"user"`
+	AccessToken  string       `json:"accessToken"`
+	RefreshToken string       `json:"refreshToken"`
+	ExpiresInSec int64        `json:"expiresInSec"`
+}
 
 //Event
 
@@ -176,6 +184,7 @@ type PasswordlessRequest struct {
 type UserResponse struct {
 	ID               string     `json:"id"`
 	Email            string     `json:"email"`
+	Role             string     `json:"role"`
 	AuthMethods      []string   `json:"authMethods"`
 	FailedLoginCount int32      `json:"failedLoginCount"`
 	LastFailedLogin  *time.Time `json:"lastFailedLogin"`
@@ -186,6 +195,7 @@ func ToUserResponse(user *user.User) UserResponse {
 	return UserResponse{
 		ID:               user.ID.Hex(),
 		Email:            user.Email,
+		Role:             user.Role,
 		AuthMethods:      user.AuthMethods,
 		FailedLoginCount: user.FailedLoginCount,
 		LastFailedLogin:  user.LastFailedLogin,
