@@ -29,7 +29,7 @@ func (u *UserHandler) UserRoutes(r *gin.RouterGroup) {
 }
 
 func (u *UserHandler) getAllUsers(g *gin.Context) {
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	users, err := u.app.GetAllUsers(ctx)
@@ -49,7 +49,7 @@ func (u *UserHandler) createUser(g *gin.Context) {
 		return
 	}
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	user, err := u.app.CreateUser(user.UserParams{
@@ -70,7 +70,7 @@ func (u *UserHandler) createUser(g *gin.Context) {
 func (u *UserHandler) getUser(g *gin.Context) {
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	user, err := u.app.GetUser(id, ctx)
@@ -92,7 +92,7 @@ func (u *UserHandler) updateUser(g *gin.Context) {
 
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	user, err := u.app.UpdateUser(id, user.UpdateUserParams{
@@ -115,7 +115,7 @@ func (u *UserHandler) updateUser(g *gin.Context) {
 func (u *UserHandler) deleteUser(g *gin.Context) {
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	if err := u.app.DeleteUser(id, ctx); err != nil {

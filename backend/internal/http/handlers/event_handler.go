@@ -40,7 +40,7 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 		return
 	}
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	event, err := e.app.CreateEvent(event.EventParams{
@@ -69,7 +69,7 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 func (e *EventHandler) getEvent(g *gin.Context) {
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	event, err := e.app.GetEvent(id, ctx)
@@ -82,7 +82,7 @@ func (e *EventHandler) getEvent(g *gin.Context) {
 }
 
 func (e *EventHandler) getAllEvents(g *gin.Context) {
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	events, err := e.app.GetAllEvents(ctx)
@@ -104,7 +104,7 @@ func (e *EventHandler) updateEvent(g *gin.Context) {
 
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	event, err := e.app.UpdateEvent(id, event.EventParams{
@@ -132,7 +132,7 @@ func (e *EventHandler) updateEvent(g *gin.Context) {
 func (e *EventHandler) deleteEvent(g *gin.Context) {
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	if err := e.app.DeleteEvent(id, ctx); err != nil {
@@ -150,7 +150,7 @@ func (e *EventHandler) searchEvents(g *gin.Context) {
 		return
 	}
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	events, err := e.app.SearchEvent(event.SearchParams{

@@ -32,7 +32,7 @@ func (v *VenueHandler) VenueRoutes(r *gin.RouterGroup) {
 }
 
 func (v *VenueHandler) getAllvenues(g *gin.Context) {
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	venues, err := v.app.GetAllVenues(ctx)
@@ -47,7 +47,7 @@ func (v *VenueHandler) getAllvenues(g *gin.Context) {
 func (v *VenueHandler) getVenue(g *gin.Context) {
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	venue, err := v.app.GetVenue(id, ctx)
@@ -69,7 +69,7 @@ func (v *VenueHandler) updateVenue(g *gin.Context) {
 
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	venue, err := v.app.UpdateVenue(id, venue.VenueParams{
@@ -91,7 +91,7 @@ func (v *VenueHandler) updateVenue(g *gin.Context) {
 func (v *VenueHandler) deleteVenue(g *gin.Context) {
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	if err := v.app.DeleteVenue(id, ctx); err != nil {
@@ -110,7 +110,7 @@ func (v *VenueHandler) createVenue(g *gin.Context) {
 		return
 	}
 
-	ctx, cancel := generateCtx()
+	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
 	defer cancel()
 
 	venue, err := v.app.CreateVenue(venue.VenueParams{

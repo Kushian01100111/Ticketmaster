@@ -24,7 +24,7 @@ type OTPRepo interface {
 type otpRepo struct{}
 
 func NewOTPRepository() OTPRepo {
-	return otpRepo{}
+	return &otpRepo{}
 }
 
 func (otp *otpRepo) CreateOrReplace(ctx context.Context, ch OTPChallange) error

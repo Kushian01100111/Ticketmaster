@@ -16,6 +16,15 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type VerifyRequest struct {
+	Email string `json:"email"`
+	Code  string `json:"code"`
+}
+
+type RequestCode struct {
+	Email string `json:"email"`
+}
+
 type AuthResult struct {
 	User         UserResponse `json:"user"`
 	AccessToken  string       `json:"accessToken"`

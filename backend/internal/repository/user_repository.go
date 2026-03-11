@@ -18,6 +18,7 @@ type UserRepository interface {
 	GetAllUser(ctx context.Context) ([]user.User, error)
 	Create(user *user.User, ctx context.Context) (bson.ObjectID, error)
 	GetByID(id bson.ObjectID, ctx context.Context) (*user.User, error)
+	GetByEmail(email string, ctx context.Context) (*user.User, error)
 	UpdateUser(user *user.User, ctx context.Context) error
 	DeleteUser(id bson.ObjectID, ctx context.Context) error
 }
@@ -73,6 +74,19 @@ func (r mongoUserStorage) GetByID(id bson.ObjectID, ctx context.Context) (*user.
 	}
 
 	return &out, nil
+}
+
+func (r mongoUserStorage) GetByEmail(email string, ctx context.Context) (*user.User, error) {
+	var out user.User
+	err := r.db.Collection("user").
+		FindOne(ctx, bson.D{{Key: "email", Value: email}}).
+		Decode(&out)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &out, err
 }
 
 func (r mongoUserStorage) UpdateUser(user *user.User, ctx context.Context) error {
