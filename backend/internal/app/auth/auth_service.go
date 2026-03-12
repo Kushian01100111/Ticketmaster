@@ -136,6 +136,7 @@ func (s *authService) challengePass(user user.User, pass string) error {
 ///
 
 func normalizeEmail(email string) string {
+	
 	s := strings.ToLower(strings.TrimSpace())
 	if s == "" || !strings.Contains(email, "@") {
 		return ""
