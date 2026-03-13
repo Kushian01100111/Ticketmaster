@@ -3,6 +3,7 @@ package dto
 import (
 	"time"
 
+	"github.com/Kushian01100111/Tickermaster/internal/app/auth"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/event"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/user"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/venue"
@@ -30,6 +31,15 @@ type AuthResult struct {
 	AccessToken  string       `json:"accessToken"`
 	RefreshToken string       `json:"refreshToken"`
 	ExpiresInSec int64        `json:"expiresInSec"`
+}
+
+func ToAuthResult(auth auth.Session) AuthResult {
+	return AuthResult{
+		User:         ToUserResponse(&auth.User),
+		AccessToken:  auth.AccessToken,
+		RefreshToken: auth.RefreshToken,
+		ExpiresInSec: auth.ExpiresInSec,
+	}
 }
 
 //Event

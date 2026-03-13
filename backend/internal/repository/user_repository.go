@@ -21,6 +21,9 @@ type UserRepository interface {
 	GetByEmail(email string, ctx context.Context) (*user.User, error)
 	UpdateUser(user *user.User, ctx context.Context) error
 	DeleteUser(id bson.ObjectID, ctx context.Context) error
+
+	FailedLogin(ctx context.Context, user *user.User) error
+	ResetFailedLogin(ctx context.Context, user *user.User) error
 }
 
 type mongoUserStorage struct {

@@ -67,7 +67,7 @@ func UpdateUserCollection(ctx context.Context, db *mongo.Database) error {
 	return db.RunCommand(ctx, cmd).Err()
 }
 
-func EnsureVenueCollection(ctx context.Context, db *mongo.Database) error {
+func EnsureUserCollection(ctx context.Context, db *mongo.Database) error {
 	existing, err := db.ListCollectionNames(ctx, bson.D{{Key: "name", Value: "user"}})
 	if err != nil {
 		return err
