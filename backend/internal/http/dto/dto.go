@@ -51,7 +51,8 @@ type EventSearchRequest struct {
 
 	Currency string `json:"currency"`
 
-	VenueID      string `json:"venueId"`
+	VenueID string `json:"venueId"`
+
 	Availability string `json:"availability"`
 	SortBy       string `json:"sortBy"`
 	SortDir      int    `json:"sortDir"`
