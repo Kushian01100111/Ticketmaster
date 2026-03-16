@@ -47,7 +47,8 @@ func ToAuthResult(auth auth.Session) AuthResult {
 type EventSearchRequest struct {
 	Query    []string  `json:"Query"`
 	DateFrom time.Time `json:"dateFrom"`
-	DateTo   time.Time `json:"dateTo"`
+
+	DateTo time.Time `json:"dateTo"`
 
 	Currency string `json:"currency"`
 
