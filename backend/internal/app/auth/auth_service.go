@@ -14,13 +14,16 @@ import (
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/email"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/auth"
+	"github.com/Kushian01100111/Tickermaster/internal/domain/otp"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/user"
 	u "github.com/Kushian01100111/Tickermaster/internal/domain/user"
 	"github.com/Kushian01100111/Tickermaster/internal/repository"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 var (
 	ErrRefreshInvalid      = errors.New("invalid refresh string")
+	ErrEmailInvalid        = errors.New("invalid mail")
 	ErrInvalidCreadentials = errors.New("invalid creadentials")
 	ErrMethodNotAllowed    = errors.New("this method of sign in is no available for this user")
 	ErrHashRequired        = errors.New("hash is required")
@@ -157,13 +160,46 @@ func (s *authService) Logout(ctx context.Context, refresh string) error {
 	return s.authRepo.RevokeRefreshToken(ctx, refreshToken)
 }
 
-func (s *authService) LogoutAll(ctx context.Context, refresh string) error
+func (s *authService) LogoutAll(ctx context.Context, idHex string) error {
+	oid, err := bson.ObjectIDFromHex(idHex)
+	if err != nil {
+		return err
+	}
+	return s.authRepo.RevokeAllByUserID(ctx, oid)
+}
 
 func (s *authService) SignupRequest(ctx context.Context, email string) error
 
 func (s *authService) SignupVeriry(ctx context.Context, param VerifyParams) (*Session, error)
 
-func (s *authService) LoginRequest(ctx context.Context, email string) error
+func (s *authService) LoginRequest(ctx context.Context, email string) error {
+	mail := normalizeEmail(email)
+	if mail == "" {
+		return ErrEmailInvalid
+	}
+
+	if u, err := s.userRepo.GetByEmail(mail, ctx); err != nil || u == nil {
+		return nil
+	}
+
+	code, err := new6DigitCode()
+	if err != nil {
+		return err
+	}
+
+	ch := otp.OTPChallange{
+		Email:     mail,
+		CodeHash:  sha256Hex(code),
+		ExpiresAt: time.Now().Add(s.otpTTL),
+		Attempts:  0,
+		CreatedAt: time.Now(),
+	}
+	if err := s.otpRepo.CreateOrReplace(ctx, ch); err != nil {
+		return err
+	}
+
+	return s.mailer.SendLoginCode(ctx, mail, code)
+}
 
 func (s *authService) LoginVerify(cxt context.Context, param VerifyParams) (*Session, error)
 

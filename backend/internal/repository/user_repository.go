@@ -34,7 +34,7 @@ func NewUserRepository(db *mongo.Database) UserRepository {
 	return &mongoUserStorage{db: db}
 }
 
-func (r mongoUserStorage) GetAllUser(ctx context.Context) ([]user.User, error) {
+func (r *mongoUserStorage) GetAllUser(ctx context.Context) ([]user.User, error) {
 	curr, err := r.db.Collection("user").Find(ctx, bson.D{})
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (r mongoUserStorage) GetByID(id bson.ObjectID, ctx context.Context) (*user.
 	return &out, nil
 }
 
-func (r mongoUserStorage) GetByEmail(email string, ctx context.Context) (*user.User, error) {
+func (r *mongoUserStorage) GetByEmail(email string, ctx context.Context) (*user.User, error) {
 	var out user.User
 	err := r.db.Collection("user").
 		FindOne(ctx, bson.D{{Key: "email", Value: email}}).
@@ -92,7 +92,7 @@ func (r mongoUserStorage) GetByEmail(email string, ctx context.Context) (*user.U
 	return &out, err
 }
 
-func (r mongoUserStorage) UpdateUser(user *user.User, ctx context.Context) error {
+func (r *mongoUserStorage) UpdateUser(user *user.User, ctx context.Context) error {
 	filter := bson.M{"_id": user.ID}
 	set := bson.M{
 		"role":             user.Role,
@@ -120,7 +120,7 @@ func (r mongoUserStorage) UpdateUser(user *user.User, ctx context.Context) error
 	return nil
 }
 
-func (r mongoUserStorage) DeleteUser(id bson.ObjectID, ctx context.Context) error {
+func (r *mongoUserStorage) DeleteUser(id bson.ObjectID, ctx context.Context) error {
 	res, err := r.db.Collection("user").
 		DeleteOne(ctx, bson.D{{Key: "_id", Value: id}})
 	if err != nil {
@@ -133,3 +133,6 @@ func (r mongoUserStorage) DeleteUser(id bson.ObjectID, ctx context.Context) erro
 
 	return nil
 }
+
+func (r *mongoUserStorage) FailedLogin(ctx context.Context, user *user.User) error
+func (r *mongoUserStorage) ResetFailedLogin(ctx context.Context, user *user.User) error

@@ -84,6 +84,8 @@ func EnsureUserCollection(ctx context.Context, db *mongo.Database) error {
 		if err := db.CreateCollection(ctx, "user", opts); err != nil {
 			return err
 		}
+	} else {
+		return UpdateUserCollection(ctx, db)
 	}
 
 	coll := db.Collection("user")

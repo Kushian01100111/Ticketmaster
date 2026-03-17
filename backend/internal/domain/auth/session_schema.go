@@ -59,7 +59,7 @@ func EnsureSessionCollection(ctx context.Context, db *mongo.Database) error {
 	coll := db.Collection("session")
 	_, err = coll.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys:    bson.D{{Key: "hast", Value: 1}},
+			Keys:    bson.D{{Key: "hash", Value: 1}},
 			Options: options.Index().SetUnique(true).SetName("idx_hash_unique"),
 		},
 	})
