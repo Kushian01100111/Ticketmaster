@@ -13,12 +13,13 @@ import (
 	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/email"
+	"github.com/Kushian01100111/Tickermaster/internal/app/otpChallange"
+	"github.com/Kushian01100111/Tickermaster/internal/app/user"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/auth"
-	"github.com/Kushian01100111/Tickermaster/internal/domain/otp"
-	"github.com/Kushian01100111/Tickermaster/internal/domain/user"
 	u "github.com/Kushian01100111/Tickermaster/internal/domain/user"
 	"github.com/Kushian01100111/Tickermaster/internal/repository"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 var (
@@ -28,8 +29,10 @@ var (
 	ErrMethodNotAllowed    = errors.New("this method of sign in is no available for this user")
 	ErrHashRequired        = errors.New("hash is required")
 	ErrUserRequired        = errors.New("user is required")
+	ErrUserAlreadyExists   = errors.New("user is already created")
 	ErrCreatedAtRequired   = errors.New("createdAt date required")
 	ErrExpiredAtRequired   = errors.New("expiredAt date required")
+	ErrInvalidOTP          = errors.New("invalid OTP")
 )
 
 type LoginParams struct {
@@ -43,7 +46,7 @@ type VerifyParams struct {
 }
 
 type Session struct {
-	User         user.User
+	User         u.User
 	AccessToken  string
 	RefreshToken string
 	ExpiresInSec int64
@@ -55,15 +58,15 @@ type AuthService interface {
 	Logout(ctx context.Context, refresh string) error
 	LogoutAll(ctx context.Context, refresh string) error
 	SignupRequest(ctx context.Context, email string) error
-	SignupVeriry(ctx context.Context, param VerifyParams) (*Session, error)
+	SignupVerify(ctx context.Context, param VerifyParams) (*Session, error)
 	LoginRequest(ctx context.Context, email string) error
 	LoginVerify(ctx context.Context, param VerifyParams) (*Session, error)
 }
 
 type authService struct {
-	otpRepo    repository.OTPRepo
+	otpSrv     otpChallange.OTPService
 	authRepo   repository.AuthRepository
-	userRepo   repository.UserRepository
+	userSrv    user.UserService
 	mailer     email.EmailSender
 	hasher     auth.PasswordHasher
 	jwt        *auth.JWTManager
@@ -77,9 +80,9 @@ type AuthConfig struct {
 }
 
 func NewAuthService(
-	otpRepo repository.OTPRepo,
+	otpRepo otpChallange.OTPService,
 	authRepo repository.AuthRepository,
-	userRepo repository.UserRepository,
+	userRepo user.UserService,
 	mailer email.EmailSender,
 	hasher auth.PasswordHasher,
 	jwt *auth.JWTManager,
@@ -95,8 +98,9 @@ func NewAuthService(
 		refreshTTL = 30 * 24 * time.Hour
 	}
 	return &authService{
+		otpSrv:     otpRepo,
 		authRepo:   authRepo,
-		userRepo:   userRepo,
+		userSrv:    userRepo,
 		mailer:     mailer,
 		hasher:     hasher,
 		jwt:        jwt,
@@ -113,16 +117,16 @@ func (s *authService) Login(ctx context.Context, params LoginParams) (*Session, 
 		return nil, ErrInvalidCreadentials
 	}
 
-	user, err := s.userRepo.GetByEmail(email, ctx)
+	user, err := s.userSrv.GetByEmail(ctx, email)
 	if err != nil || user == nil {
 		return nil, err
 	}
 
 	if err := s.challengePass(*user, pass); err != nil {
-		_ = s.userRepo.FailedLogin(ctx, user)
+		_ = s.userSrv.FailedLogin(ctx, user)
 		return nil, err
 	}
-	_ = s.userRepo.ResetFailedLogin(ctx, user)
+	_ = s.userSrv.ResetFailedLogin(ctx, user)
 
 	return s.issueSession(ctx, user)
 }
@@ -139,7 +143,7 @@ func (s *authService) Refresh(ctx context.Context, refresh string) (*Session, er
 		return nil, ErrRefreshInvalid
 	}
 
-	user, err := s.userRepo.GetByID(sess.UserID, ctx)
+	user, err := s.userSrv.GetUser(sess.UserID.Hex(), ctx)
 	if err != nil {
 		return nil, ErrRefreshInvalid
 	}
@@ -168,18 +172,14 @@ func (s *authService) LogoutAll(ctx context.Context, idHex string) error {
 	return s.authRepo.RevokeAllByUserID(ctx, oid)
 }
 
-func (s *authService) SignupRequest(ctx context.Context, email string) error
-
-func (s *authService) SignupVeriry(ctx context.Context, param VerifyParams) (*Session, error)
-
-func (s *authService) LoginRequest(ctx context.Context, email string) error {
+func (s *authService) SignupRequest(ctx context.Context, email string) error {
 	mail := normalizeEmail(email)
 	if mail == "" {
 		return ErrEmailInvalid
 	}
 
-	if u, err := s.userRepo.GetByEmail(mail, ctx); err != nil || u == nil {
-		return nil
+	if u, err := s.userSrv.GetByEmail(ctx, mail); err == nil || u != nil {
+		return ErrUserAlreadyExists
 	}
 
 	code, err := new6DigitCode()
@@ -187,23 +187,127 @@ func (s *authService) LoginRequest(ctx context.Context, email string) error {
 		return err
 	}
 
-	ch := otp.OTPChallange{
+	ch := otpChallange.OTPParams{
 		Email:     mail,
 		CodeHash:  sha256Hex(code),
 		ExpiresAt: time.Now().Add(s.otpTTL),
 		Attempts:  0,
 		CreatedAt: time.Now(),
 	}
-	if err := s.otpRepo.CreateOrReplace(ctx, ch); err != nil {
+	if err := s.otpSrv.CreateOrReplace(ctx, ch); err != nil {
+		return err
+	}
+
+	return s.mailer.SendSignUpCode(ctx, mail, code)
+}
+
+func (s *authService) SignupVerify(ctx context.Context, params VerifyParams) (*Session, error) {
+	email := normalizeEmail(params.Email)
+	code := strings.TrimSpace(params.Code)
+
+	if email == "" || code == "" {
+		return nil, ErrInvalidOTP
+	}
+
+	if u, err := s.userSrv.GetByEmail(ctx, email); err == nil || u != nil {
+		return nil, ErrUserAlreadyExists
+	}
+
+	if err := s.verifyAndConsumeOTP(ctx, email, code, "signUp"); err != nil {
+		return nil, err
+	}
+
+	u, err := s.userSrv.CreateUser(user.UserParams{
+		Email:      email,
+		Role:       "costumer",
+		AuthMethod: "email_otp",
+	}, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.issueSession(ctx, u)
+}
+
+func (s *authService) LoginRequest(ctx context.Context, email string) error {
+	mail := normalizeEmail(email)
+	if mail == "" {
+		return ErrEmailInvalid
+	}
+
+	if u, err := s.userSrv.GetByEmail(ctx, mail); err != nil || u == nil {
+		return err
+	}
+
+	code, err := new6DigitCode()
+	if err != nil {
+		return err
+	}
+
+	ch := otpChallange.OTPParams{
+		Email:     mail,
+		CodeHash:  sha256Hex(code),
+		ExpiresAt: time.Now().Add(s.otpTTL),
+		Attempts:  0,
+		CreatedAt: time.Now(),
+	}
+	if err := s.otpSrv.CreateOrReplace(ctx, ch); err != nil {
 		return err
 	}
 
 	return s.mailer.SendLoginCode(ctx, mail, code)
 }
 
-func (s *authService) LoginVerify(cxt context.Context, param VerifyParams) (*Session, error)
+func (s *authService) LoginVerify(ctx context.Context, params VerifyParams) (*Session, error) {
+	email := normalizeEmail(params.Email)
+	code := strings.TrimSpace(params.Code)
+	if email == "" || code == "" {
+		return nil, ErrInvalidOTP
+	}
 
-func (s *authService) issueSession(ctx context.Context, user *user.User) (*Session, error) {
+	if err := s.verifyAndConsumeOTP(ctx, email, code, "login"); err != nil {
+		return nil, ErrInvalidOTP
+	}
+
+	u, err := s.userSrv.GetByEmail(ctx, email)
+	if err != nil || u == nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			u, err = s.userSrv.CreateUser(user.UserParams{
+				Email:      email,
+				Role:       "costumer",
+				AuthMethod: "email_otp",
+			}, ctx)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+
+	return s.issueSession(ctx, u)
+}
+
+func (s *authService) verifyAndConsumeOTP(ctx context.Context, email, code, purpuse string) error {
+	ch, err := s.otpSrv.GetActiveByEmail(ctx, email, purpuse)
+	if err != nil || ch == nil {
+		return ErrInvalidOTP
+	}
+
+	if ch.ConsumedAt != nil || time.Now().After(ch.ExpiresAt) {
+		return ErrInvalidOTP
+	}
+
+	if sha256Hex(code) != ch.CodeHash {
+		_ = s.otpSrv.IncAttempts(ctx, email)
+		return ErrInvalidOTP
+	}
+
+	_ = s.otpSrv.Consume(ctx, email)
+	return nil
+}
+
+func (s *authService) issueSession(ctx context.Context, user *u.User) (*Session, error) {
 	access, exp, err := s.jwt.NewAccessToken(user.ID.Hex(), user.Role, nil)
 	if err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-package otp
+package otpChallange
 
 import (
 	"context"
@@ -27,8 +27,8 @@ type OTPParams struct {
 }
 
 type OTPService interface {
-	CreateOrReplace(ctx context.Context, ch OTPParams) (string, error)
-	GetActiveByEmail(ctx context.Context, email string) (*otp.OTPChallange, error)
+	CreateOrReplace(ctx context.Context, ch OTPParams) error
+	GetActiveByEmail(ctx context.Context, email string, purpuse string) (*otp.OTPChallange, error)
 	IncAttempts(ctx context.Context, email string) error
 	Consume(ctx context.Context, email string) error
 }
@@ -45,9 +45,9 @@ func NewOTPService(otp repository.OTPRepo, user repository.UserRepository) OTPSe
 	}
 }
 
-func (o *otpService) CreateOrReplace(ctx context.Context, ch OTPParams) (string, error) {
+func (o *otpService) CreateOrReplace(ctx context.Context, ch OTPParams) error {
 	if err := validateParams(ch); err != nil {
-		return "", err
+		return err
 	}
 
 	now := time.Now()
@@ -55,7 +55,7 @@ func (o *otpService) CreateOrReplace(ctx context.Context, ch OTPParams) (string,
 		ch.CreatedAt = now
 	}
 
-	str, err := o.otpRepo.CreateOrReplace(ctx, otp.OTPChallange{
+	err := o.otpRepo.CreateOrReplace(ctx, otp.OTPChallange{
 		Email:     ch.Email,
 		Purpuse:   ch.Purpuse,
 		CodeHash:  ch.CodeHash,
@@ -64,14 +64,44 @@ func (o *otpService) CreateOrReplace(ctx context.Context, ch OTPParams) (string,
 		CreatedAt: now,
 	})
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return str, nil
+	return nil
 }
-func (o *otpService) GetActiveByEmail(ctx context.Context, email string) (*otp.OTPChallange, error)
-func (o *otpService) IncAttempts(ctx context.Context, email string) error
-func (o *otpService) Consume(ctx context.Context, email string) error
+func (o *otpService) GetActiveByEmail(ctx context.Context, email string, purpuse string) (*otp.OTPChallange, error) {
+	mail := strings.ToLower(strings.TrimSpace(email))
+	purpuse = strings.TrimSpace(purpuse)
+
+	if mail == "" {
+		return nil, ErrEmailRequired
+	}
+
+	if err := validatePurpuse(purpuse); err != nil {
+		return nil, err
+	}
+
+	return o.otpRepo.GetActiveByEmail(ctx, mail, purpuse)
+}
+
+func (o *otpService) IncAttempts(ctx context.Context, email string) error {
+	mail := strings.ToLower(strings.TrimSpace(email))
+
+	if mail == "" {
+		return ErrEmailRequired
+	}
+
+	return o.otpRepo.IncAttempts(ctx, mail)
+}
+func (o *otpService) Consume(ctx context.Context, email string) error {
+	mail := strings.ToLower(strings.TrimSpace(email))
+	if mail == "" {
+		return ErrEmailRequired
+	}
+
+	now := time.Now()
+	return o.otpRepo.Consume(ctx, mail, now)
+}
 
 //
 

@@ -13,6 +13,6 @@ type OTPChallange struct {
 	CodeHash   string        `json:"codeHash"`
 	ExpiresAt  time.Time     `json:"expiresAt"`
 	Attempts   int32         `json:"attempts"`
-	ConsumedAt *time.Time    `json:"consumeAt,omitempty"`
+	ConsumedAt *time.Time    `json:"consumedAt,omitempty"`
 	CreatedAt  time.Time     `json:"createdAt"`
 }

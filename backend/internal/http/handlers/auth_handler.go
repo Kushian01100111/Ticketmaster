@@ -126,7 +126,7 @@ func (a *AuthHandler) signupVerify(g *gin.Context) {
 		return
 	}
 
-	authRes, err := a.app.SignupVeriry(g.Request.Context(), auth.VerifyParams{
+	authRes, err := a.app.SignupVerify(g.Request.Context(), auth.VerifyParams{
 		Email: req.Email,
 		Code:  req.Code,
 	})

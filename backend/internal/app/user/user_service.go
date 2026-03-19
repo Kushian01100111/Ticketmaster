@@ -43,8 +43,13 @@ type UserService interface {
 	GetAllUsers(ctx context.Context) ([]user.User, error)
 	CreateUser(params UserParams, ctx context.Context) (*user.User, error)
 	GetUser(idhex string, ctx context.Context) (*user.User, error)
+	GetByEmail(ctx context.Context, email string) (*user.User, error)
+
 	UpdateUser(idhex string, params UpdateUserParams, ctx context.Context) (*user.User, error)
 	DeleteUser(idhex string, ctx context.Context) error
+
+	FailedLogin(ctx context.Context, user *user.User) error
+	ResetFailedLogin(ctx context.Context, user *user.User) error
 }
 
 type userService struct {
@@ -111,6 +116,8 @@ func (s userService) GetUser(idhex string, ctx context.Context) (*user.User, err
 	return s.userRepo.GetByID(id, ctx)
 }
 
+func (s userService) GetByEmail(ctx context.Context, email string) (*user.User, error)
+
 func (s userService) UpdateUser(idhex string, params UpdateUserParams, ctx context.Context) (*user.User, error) {
 	if err := validateUpdateParam(params); err != nil {
 		return nil, err
@@ -172,6 +179,9 @@ func (s userService) DeleteUser(idhex string, ctx context.Context) error {
 
 	return nil
 }
+
+func (s *userService) FailedLogin(ctx context.Context, user *user.User) error
+func (s *userService) ResetFailedLogin(ctx context.Context, user *user.User) error
 
 ///
 
