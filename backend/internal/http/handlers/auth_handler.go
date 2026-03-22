@@ -68,6 +68,7 @@ func (a *AuthHandler) login(g *gin.Context) {
 
 func (a *AuthHandler) refresh(g *gin.Context) {
 	rt, err := g.Cookie(a.refreshCookie)
+
 	if err != nil {
 		g.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
