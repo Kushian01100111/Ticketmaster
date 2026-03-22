@@ -29,8 +29,9 @@ type UserParams struct {
 }
 
 type UpdateUserParams struct {
-	Role        string
-	Password    string
+	Role     string
+	Password string
+
 	AuthMethods []string
 
 	FailedLoginCount int32
