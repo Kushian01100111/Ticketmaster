@@ -71,6 +71,7 @@ func (a *AuthHandler) refresh(g *gin.Context) {
 
 	if err != nil {
 		g.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+
 		return
 	}
 
