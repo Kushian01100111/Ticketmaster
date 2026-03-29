@@ -24,7 +24,7 @@ func (u *UserHandler) UserRoutes(r *gin.RouterGroup) {
 		context.GET("/:id", u.getUser)
 		context.PATCH("/:id", u.updateUser)
 		context.DELETE("/:id", u.deleteUser)
-		context.GET("/byEmail/:id")
+		context.GET("/byEmail", u.getUserByEmail)
 	}
 }
 
@@ -127,5 +127,18 @@ func (u *UserHandler) deleteUser(g *gin.Context) {
 }
 
 func (u *UserHandler) getUserByEmail(g *gin.Context) {
+	var req *dto.RequestCode
 
+	if err := g.ShouldBindJSON(req); err != nil {
+		g.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := u.app.GetByEmail(g.Request.Context(), req.Email)
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	g.JSON(http.StatusOK, dto.ToUserResponse(user))
 }

@@ -115,7 +115,13 @@ func (s userService) GetUser(idhex string, ctx context.Context) (*user.User, err
 	return s.userRepo.GetByID(id, ctx)
 }
 
-func (s userService) GetByEmail(ctx context.Context, email string) (*user.User, error)
+func (s userService) GetByEmail(ctx context.Context, email string) (*user.User, error) {
+	mail := strings.TrimSpace(strings.ToLower(email))
+	if err := validateEmail(mail); err != nil {
+		return nil, err
+	}
+	return s.userRepo.GetByEmail(mail, ctx)
+}
 
 func (s userService) UpdateUser(idhex string, params UpdateUserParams, ctx context.Context) (*user.User, error) {
 	if err := validateUpdateParam(params); err != nil {
