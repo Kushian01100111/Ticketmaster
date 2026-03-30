@@ -9,6 +9,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	"github.com/Kushian01100111/Tickermaster/internal/app/email"
 	"github.com/Kushian01100111/Tickermaster/internal/app/event"
 	"github.com/Kushian01100111/Tickermaster/internal/app/user"
 	"github.com/Kushian01100111/Tickermaster/internal/app/venue"
@@ -45,6 +46,7 @@ func main() {
 	venueRepo := repository.NewVenueRepository(db.Database(config.DB))
 	userRepo := repository.NewUserRepository(db.Database(config.DB))
 
+	emailRepo := email.NewEmailSender(config.ResendAPIKey, config.EmailFrom)
 	eventSvc := event.NewEventService(eventRepo, venueRepo)
 	venueSvc := venue.NewVenueService(venueRepo)
 	userSvc := user.NewUserService(userRepo)

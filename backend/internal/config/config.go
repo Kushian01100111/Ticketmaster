@@ -7,11 +7,13 @@ import (
 )
 
 type Config struct {
-	DSN         string
-	DB          string
-	GinConfig   string
-	Port        string
-	JWTPassword string
+	DSN          string
+	DB           string
+	GinConfig    string
+	Port         string
+	ResendAPIKey string
+	EmailFrom    string
+	JWTPassword  string
 }
 
 func LoadConfig() (*Config, error) {
@@ -21,11 +23,13 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		DSN:         getEnv("DB_URI", ""),
-		DB:          getEnv("MONGO_DB", ""),
-		GinConfig:   getEnv("GIN_MODE", "debug"),
-		Port:        getEnv("PORT", "8080"),
-		JWTPassword: getEnv("JWT_PASSWORD", ""),
+		DSN:          getEnv("DB_URI", ""),
+		DB:           getEnv("MONGO_DB", ""),
+		GinConfig:    getEnv("GIN_MODE", "debug"),
+		Port:         getEnv("PORT", "8080"),
+		ResendAPIKey: getEnv("RESEND_API_KEY", ""),
+		EmailFrom:    getEnv("RESEND_EMAIL", ""),
+		JWTPassword:  getEnv("JWT_PASSWORD", ""),
 	}, nil
 }
 

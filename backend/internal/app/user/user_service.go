@@ -40,12 +40,12 @@ type UpdateUserParams struct {
 
 type UserService interface {
 	GetAllUsers(ctx context.Context) ([]user.User, error)
-	CreateUser(params UserParams, ctx context.Context) (*user.User, error)
-	GetUser(idhex string, ctx context.Context) (*user.User, error)
+	CreateUser(ctx context.Context, params UserParams) (*user.User, error)
+	GetUser(ctx context.Context, idhex string) (*user.User, error)
 	GetByEmail(ctx context.Context, email string) (*user.User, error)
 
-	UpdateUser(idhex string, params UpdateUserParams, ctx context.Context) (*user.User, error)
-	DeleteUser(idhex string, ctx context.Context) error
+	UpdateUser(ctx context.Context, idhex string, params UpdateUserParams) (*user.User, error)
+	DeleteUser(ctx context.Context, idhex string) error
 
 	FailedLogin(ctx context.Context, user *user.User) error
 	ResetFailedLogin(ctx context.Context, user *user.User) error
@@ -65,7 +65,7 @@ func (s userService) GetAllUsers(ctx context.Context) ([]user.User, error) {
 	return s.userRepo.GetAllUser(ctx)
 }
 
-func (s userService) CreateUser(params UserParams, ctx context.Context) (*user.User, error) {
+func (s userService) CreateUser(ctx context.Context, params UserParams) (*user.User, error) {
 	if err := validateParam(params); err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (s userService) CreateUser(params UserParams, ctx context.Context) (*user.U
 	return User, err
 }
 
-func (s userService) GetUser(idhex string, ctx context.Context) (*user.User, error) {
+func (s userService) GetUser(ctx context.Context, idhex string) (*user.User, error) {
 	id, err := bson.ObjectIDFromHex(idhex)
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func (s userService) GetByEmail(ctx context.Context, email string) (*user.User, 
 	return s.userRepo.GetByEmail(mail, ctx)
 }
 
-func (s userService) UpdateUser(idhex string, params UpdateUserParams, ctx context.Context) (*user.User, error) {
+func (s userService) UpdateUser(ctx context.Context, idhex string, params UpdateUserParams) (*user.User, error) {
 	if err := validateUpdateParam(params); err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (s userService) UpdateUser(idhex string, params UpdateUserParams, ctx conte
 	return User, nil
 }
 
-func (s userService) DeleteUser(idhex string, ctx context.Context) error {
+func (s userService) DeleteUser(ctx context.Context, idhex string) error {
 	id, err := bson.ObjectIDFromHex(idhex)
 	if err != nil {
 		return err
@@ -185,8 +185,14 @@ func (s userService) DeleteUser(idhex string, ctx context.Context) error {
 	return nil
 }
 
-func (s *userService) FailedLogin(ctx context.Context, user *user.User) error
-func (s *userService) ResetFailedLogin(ctx context.Context, user *user.User) error
+func (s *userService) FailedLogin(ctx context.Context, user *user.User) error {
+	user.FailedLoginCount++
+	return s.userRepo.FailedLogin(ctx, user)
+}
+func (s *userService) ResetFailedLogin(ctx context.Context, user *user.User) error {
+	user.FailedLoginCount = 0
+	return s.userRepo.ResetFailedLogin(ctx, user)
+}
 
 ///
 

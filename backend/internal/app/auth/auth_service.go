@@ -143,7 +143,7 @@ func (s *authService) Refresh(ctx context.Context, refresh string) (*Session, er
 		return nil, ErrRefreshInvalid
 	}
 
-	user, err := s.userSrv.GetUser(sess.UserID.Hex(), ctx)
+	user, err := s.userSrv.GetUser(ctx, sess.UserID.Hex())
 	if err != nil {
 		return nil, ErrRefreshInvalid
 	}
@@ -217,11 +217,11 @@ func (s *authService) SignupVerify(ctx context.Context, params VerifyParams) (*S
 		return nil, err
 	}
 
-	u, err := s.userSrv.CreateUser(user.UserParams{
+	u, err := s.userSrv.CreateUser(ctx, user.UserParams{
 		Email:      email,
 		Role:       "costumer",
 		AuthMethod: "email_otp",
-	}, ctx)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -272,11 +272,11 @@ func (s *authService) LoginVerify(ctx context.Context, params VerifyParams) (*Se
 	u, err := s.userSrv.GetByEmail(ctx, email)
 	if err != nil || u == nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			u, err = s.userSrv.CreateUser(user.UserParams{
+			u, err = s.userSrv.CreateUser(ctx, user.UserParams{
 				Email:      email,
 				Role:       "costumer",
 				AuthMethod: "email_otp",
-			}, ctx)
+			})
 			if err != nil {
 				return nil, err
 			}

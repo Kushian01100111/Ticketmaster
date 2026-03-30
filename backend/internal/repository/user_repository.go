@@ -134,5 +134,39 @@ func (r *mongoUserStorage) DeleteUser(id bson.ObjectID, ctx context.Context) err
 	return nil
 }
 
-func (r *mongoUserStorage) FailedLogin(ctx context.Context, user *user.User) error
-func (r *mongoUserStorage) ResetFailedLogin(ctx context.Context, user *user.User) error
+func (r *mongoUserStorage) FailedLogin(ctx context.Context, user *user.User) error {
+	filter := bson.M{"_id": user.ID}
+	set := bson.M{
+		"failedLoginCount": user.FailedLoginCount,
+	}
+	update := bson.M{"$set": set}
+
+	res, err := r.db.Collection("user").UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if res.MatchedCount == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}
+func (r *mongoUserStorage) ResetFailedLogin(ctx context.Context, user *user.User) error {
+	filter := bson.M{"_id": user.ID}
+	set := bson.M{
+		"failedLoginCount": user.FailedLoginCount,
+	}
+	update := bson.M{"$set": set}
+
+	res, err := r.db.Collection("user").UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if res.MatchedCount == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}

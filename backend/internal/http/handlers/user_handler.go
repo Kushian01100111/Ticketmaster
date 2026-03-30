@@ -29,10 +29,7 @@ func (u *UserHandler) UserRoutes(r *gin.RouterGroup) {
 }
 
 func (u *UserHandler) getAllUsers(g *gin.Context) {
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	users, err := u.app.GetAllUsers(ctx)
+	users, err := u.app.GetAllUsers(g.Request.Context())
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -49,15 +46,12 @@ func (u *UserHandler) createUser(g *gin.Context) {
 		return
 	}
 
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	user, err := u.app.CreateUser(user.UserParams{
+	user, err := u.app.CreateUser(g.Request.Context(), user.UserParams{
 		Email:      req.Email,
 		Role:       req.Role,
 		Password:   req.Password,
 		AuthMethod: req.AuthMethod,
-	}, ctx)
+	})
 
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -70,10 +64,7 @@ func (u *UserHandler) createUser(g *gin.Context) {
 func (u *UserHandler) getUser(g *gin.Context) {
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	user, err := u.app.GetUser(id, ctx)
+	user, err := u.app.GetUser(g.Request.Context(), id)
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -91,18 +82,14 @@ func (u *UserHandler) updateUser(g *gin.Context) {
 	}
 
 	id := g.Param("id")
-
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	user, err := u.app.UpdateUser(id, user.UpdateUserParams{
+	user, err := u.app.UpdateUser(g.Request.Context(), id, user.UpdateUserParams{
 		Role:             req.Role,
 		Password:         req.Password,
 		AuthMethods:      req.AuthMethods,
 		FailedLoginCount: req.FailedLoginCount,
 		LastFailedLogin:  req.LastFailedLogin,
 		BookedEvents:     req.BookedEvents,
-	}, ctx)
+	})
 
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -114,11 +101,7 @@ func (u *UserHandler) updateUser(g *gin.Context) {
 
 func (u *UserHandler) deleteUser(g *gin.Context) {
 	id := g.Param("id")
-
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	if err := u.app.DeleteUser(id, ctx); err != nil {
+	if err := u.app.DeleteUser(g.Request.Context(), id); err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

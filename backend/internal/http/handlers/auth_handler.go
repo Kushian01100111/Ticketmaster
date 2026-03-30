@@ -49,10 +49,7 @@ func (a *AuthHandler) login(g *gin.Context) {
 		return
 	}
 
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	authRes, err := a.app.Login(ctx, auth.LoginParams{
+	authRes, err := a.app.Login(g.Request.Context(), auth.LoginParams{
 		Email:    req.Email,
 		Password: req.Password,
 	})
