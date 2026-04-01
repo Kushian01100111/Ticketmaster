@@ -10,7 +10,6 @@ type AuthMiddleware struct {
 }
 
 func NewAuthMiddleware(jwt *auth.JWTManager) *AuthMiddleware {
-
 	return &AuthMiddleware{jwt: jwt}
 }
 
