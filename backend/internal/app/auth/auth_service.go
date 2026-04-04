@@ -15,7 +15,7 @@ import (
 	"github.com/Kushian01100111/Tickermaster/internal/app/email"
 	"github.com/Kushian01100111/Tickermaster/internal/app/otpChallange"
 	"github.com/Kushian01100111/Tickermaster/internal/app/user"
-	"github.com/Kushian01100111/Tickermaster/internal/domain/auth"
+	"github.com/Kushian01100111/Tickermaster/internal/domain/session"
 	u "github.com/Kushian01100111/Tickermaster/internal/domain/user"
 	"github.com/Kushian01100111/Tickermaster/internal/repository"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -68,8 +68,8 @@ type authService struct {
 	authRepo   repository.AuthRepository
 	userSrv    user.UserService
 	mailer     email.EmailSender
-	hasher     auth.PasswordHasher
-	jwt        *auth.JWTManager
+	hasher     session.PasswordHasher
+	jwt        *session.JWTManager
 	otpTTL     time.Duration
 	refreshTTL time.Duration
 }
@@ -84,8 +84,8 @@ func NewAuthService(
 	authRepo repository.AuthRepository,
 	userRepo user.UserService,
 	mailer email.EmailSender,
-	hasher auth.PasswordHasher,
-	jwt *auth.JWTManager,
+	hasher session.PasswordHasher,
+	jwt *session.JWTManager,
 	config AuthConfig) AuthService {
 
 	otpTTL := config.OTPTTL
@@ -321,7 +321,7 @@ func (s *authService) issueSession(ctx context.Context, user *u.User) (*Session,
 	refreshHash := sha256Hex(refresh)
 	now := time.Now()
 
-	session := auth.RefreshSession{
+	session := session.RefreshSession{
 		UserID:    user.ID,
 		Hash:      refreshHash,
 		ExpiresAt: now.Add(s.refreshTTL),
@@ -344,7 +344,7 @@ func (s *authService) issueSession(ctx context.Context, user *u.User) (*Session,
 	}, nil
 }
 
-func validateRefreshSession(refresh auth.RefreshSession) error {
+func validateRefreshSession(refresh session.RefreshSession) error {
 	if strings.TrimSpace(refresh.Hash) == "" {
 		return ErrHashRequired
 	}

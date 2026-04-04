@@ -7,9 +7,9 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
-	"github.com/Kushian01100111/Tickermaster/internal/domain/auth"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/booking"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/event"
+	"github.com/Kushian01100111/Tickermaster/internal/domain/session"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/ticket"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/user"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/venue"
@@ -85,7 +85,7 @@ func ensureCollections(ctx context.Context, db *mongo.Database) error {
 		return err
 	}
 
-	err = auth.EnsureSessionCollection(ctx, db)
+	err = session.EnsureSessionCollection(ctx, db)
 	if err != nil {
 		return err
 	}

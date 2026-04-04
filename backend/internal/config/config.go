@@ -13,7 +13,7 @@ type Config struct {
 	Port         string
 	ResendAPIKey string
 	EmailFrom    string
-	JWTPassword  string
+	JWTSECRET    string
 }
 
 func LoadConfig() (*Config, error) {
@@ -29,7 +29,7 @@ func LoadConfig() (*Config, error) {
 		Port:         getEnv("PORT", "8080"),
 		ResendAPIKey: getEnv("RESEND_API_KEY", ""),
 		EmailFrom:    getEnv("RESEND_EMAIL", ""),
-		JWTPassword:  getEnv("JWT_PASSWORD", ""),
+		JWTSECRET:    getEnv("JWT_SECRET", ""),
 	}, nil
 }
 

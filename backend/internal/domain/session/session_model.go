@@ -1,4 +1,4 @@
-package auth
+package session
 
 import (
 	"time"
@@ -8,8 +8,8 @@ import (
 
 type RefreshSession struct {
 	UserID    bson.ObjectID `bson:"userId,omitempty"`
-	Hash      string        `bson:"hast"`
+	Hash      string        `bson:"hash"`
 	ExpiresAt time.Time     `bson:"expiresAt"`
 	CreatedAt time.Time     `bson:"createdAt"`
-	RevokedAt *time.Time    `bson:"revokeAt"`
+	RevokedAt *time.Time    `bson:"revokedAt"`
 }

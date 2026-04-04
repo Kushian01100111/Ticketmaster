@@ -12,9 +12,10 @@ import (
 )
 
 type RouterDep struct {
-	EventDep *handlers.EventHandler
-	VenueDep *handlers.VenueHandler
-	UserDep  *handlers.UserHandler
+	AuthHandler *handlers.AuthHandler
+	EventDep    *handlers.EventHandler
+	VenueDep    *handlers.VenueHandler
+	UserDep     *handlers.UserHandler
 }
 
 func NewHandler(dep RouterDep, config *config.Config) http.Handler {
