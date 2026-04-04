@@ -13,4 +13,5 @@ func NewAuthMiddleware(jwt *auth.JWTManager) *AuthMiddleware {
 	return &AuthMiddleware{jwt: jwt}
 }
 
+// Protege rutas validando access tokens y carga claims en el gin.Context
 func (a *AuthMiddleware) RequireAuth() gin.HandlerFunc

@@ -15,6 +15,10 @@ var (
 	ErrAuthClock             = errors.New("jwt clock skew must be >= 0")
 	ErrAuthAccessTTLRequired = errors.New("jwt accessTTL is required")
 	ErrAuthUserRequired      = errors.New("userID is required")
+	ErrMissingToken          = errors.New("missing token")
+	ErrInvalidSignAlg        = errors.New("invalid signing algorithm")
+	ErrTokenExpired          = errors.New("token has expired")
+	ErrTokenNotValid         = errors.New("token is not valid")
 )
 
 type JWTConfig struct {
@@ -103,6 +107,67 @@ func (j *JWTManager) NewAccessToken(userID, role string, scopes []string) (strin
 		return "", time.Time{}, err
 	}
 	return s, exp, err
+}
+
+// Parses a JWT string,  verifies signature/alg, validates exp/nbf/iat, and returns strongly typed claims
+func (j *JWTManager) ParseAndValidate(tokenSTR string) (*AccessClaims, error) {
+	tokenStr := strings.TrimSpace(tokenSTR)
+	if tokenStr == "" {
+		return nil, ErrMissingToken
+	}
+
+	parser := jwt.NewParser(
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
+		jwt.WithIssuer(j.Issuer),
+		jwt.WithLeeway(j.ClockSkew),
+	)
+
+	claims := &AccessClaims{}
+	token, err := parser.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (any, error) {
+		if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+			return nil, ErrInvalidSignAlg
+		}
+		return j.Secret, nil
+	})
+
+	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, ErrTokenExpired
+		} else if errors.Is(err, jwt.ErrTokenNotValidYet) {
+			return nil, ErrTokenNotValid
+		}
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, ErrTokenNotValid
+	}
+
+	if strings.TrimSpace(claims.Subject) == "" {
+		return nil, ErrTokenNotValid
+	}
+
+	return claims, nil
+}
+
+// Extracts the token from the authHeader
+func ExtractBearerToken(authHeader string) (string, error) {
+	h := strings.TrimSpace(authHeader)
+	if h == "" {
+		return "", ErrMissingToken
+	}
+
+	const prefix = "Bearer "
+	if len(h) < len(prefix) || !strings.EqualFold(h[:len(prefix)], prefix) {
+		return "", ErrMissingToken
+	}
+
+	tiki := strings.TrimSpace(h[len(prefix):])
+	if tiki == "" {
+		return "", ErrMissingToken
+	}
+
+	return tiki, nil
 }
 
 ///
