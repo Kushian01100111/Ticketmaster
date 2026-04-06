@@ -8,6 +8,7 @@ import (
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/event"
 	"github.com/Kushian01100111/Tickermaster/internal/http/dto"
+	"github.com/Kushian01100111/Tickermaster/internal/http/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,11 +24,11 @@ func NewEventHandler(svc event.EventService) *EventHandler {
 func (e *EventHandler) EventRoutes(r *gin.RouterGroup) {
 	context := r.Group("/event")
 	{
-		context.PUT("", e.createEvent)
-		context.GET("", e.getAllEvents)
+		context.PUT("", middleware.RequireRole("editor", "admin"), e.createEvent)
+		context.GET("", middleware.RequireRole("admin"), e.getAllEvents)
 		context.GET("/:id", e.getEvent)
-		context.PATCH("/:id", e.updateEvent)
-		context.DELETE("/:id", e.deleteEvent)
+		context.PATCH("/:id", middleware.RequireRole("editor", "admin"), e.updateEvent)
+		context.DELETE("/:id", middleware.RequireRole("editor", "admin"), e.deleteEvent)
 		context.GET("/search", e.searchEvents)
 	}
 }

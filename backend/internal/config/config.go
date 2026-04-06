@@ -1,9 +1,14 @@
 package config
 
 import (
+	"errors"
 	"os"
 
 	"github.com/joho/godotenv"
+)
+
+var (
+	ErrJWTSecretEmpty = errors.New("jwt secret not loaded")
 )
 
 type Config struct {
@@ -20,6 +25,11 @@ func LoadConfig() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
 		return nil, err
+	}
+
+	jwt := getEnv("JWT_SECRET", "")
+	if jwt == "" {
+		return nil, ErrJWTSecretEmpty
 	}
 
 	return &Config{

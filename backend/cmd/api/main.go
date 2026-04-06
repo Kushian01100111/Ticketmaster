@@ -93,7 +93,8 @@ func main() {
 		EventDep:    eventHandler,
 		VenueDep:    venueHandler,
 		UserDep:     userHandler},
-		config)
+		config,
+		middleware)
 
 	srv := &http.Server{
 		Addr:    *addr,

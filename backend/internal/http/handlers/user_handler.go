@@ -5,6 +5,7 @@ import (
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/user"
 	"github.com/Kushian01100111/Tickermaster/internal/http/dto"
+	"github.com/Kushian01100111/Tickermaster/internal/http/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,12 +20,12 @@ func NewUserHandler(svc user.UserService) *UserHandler {
 func (u *UserHandler) UserRoutes(r *gin.RouterGroup) {
 	context := r.Group("/user")
 	{
-		context.GET("", u.getAllUsers)
+		context.GET("", middleware.RequireRole("admin"), u.getAllUsers)
 		context.PUT("", u.createUser)
-		context.GET("/:id", u.getUser)
-		context.PATCH("/:id", u.updateUser)
-		context.DELETE("/:id", u.deleteUser)
-		context.GET("/byEmail", u.getUserByEmail)
+		context.GET("/:id", middleware.RequireRole("admin"), u.getUser)
+		context.PATCH("/:id", middleware.RequireRole("costumer", "admin"), u.updateUser)
+		context.DELETE("/:id", middleware.RequireRole("costumer", "admin"), u.deleteUser)
+		context.GET("/byEmail", middleware.RequireRole("costumer", "admin"), u.getUserByEmail)
 	}
 }
 

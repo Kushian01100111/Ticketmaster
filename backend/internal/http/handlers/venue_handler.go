@@ -7,6 +7,7 @@ import (
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/venue"
 	"github.com/Kushian01100111/Tickermaster/internal/http/dto"
+	"github.com/Kushian01100111/Tickermaster/internal/http/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,11 +24,11 @@ func NewVenueHandler(svc venue.VenueService) *VenueHandler {
 func (v *VenueHandler) VenueRoutes(r *gin.RouterGroup) {
 	context := r.Group("/venue")
 	{
-		context.GET("", v.getAllvenues)
-		context.GET("/:id", v.getVenue)
-		context.PATCH("/:id", v.updateVenue)
-		context.DELETE("/:id", v.deleteVenue)
-		context.PUT("", v.createVenue)
+		context.GET("", middleware.RequireRole("admin"), v.getAllvenues)
+		context.GET("/:id", middleware.RequireRole("editor", "admin"), v.getVenue)
+		context.PATCH("/:id", middleware.RequireRole("admin"), v.updateVenue)
+		context.DELETE("/:id", middleware.RequireRole("admin"), v.deleteVenue)
+		context.PUT("", middleware.RequireRole("admin"), v.createVenue)
 	}
 }
 

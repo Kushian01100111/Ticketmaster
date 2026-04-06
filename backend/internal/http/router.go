@@ -9,6 +9,7 @@ import (
 
 	"github.com/Kushian01100111/Tickermaster/internal/config"
 	"github.com/Kushian01100111/Tickermaster/internal/http/handlers"
+	"github.com/Kushian01100111/Tickermaster/internal/http/middleware"
 )
 
 type RouterDep struct {
@@ -18,7 +19,7 @@ type RouterDep struct {
 	UserDep     *handlers.UserHandler
 }
 
-func NewHandler(dep RouterDep, config *config.Config) http.Handler {
+func NewHandler(dep RouterDep, config *config.Config, middleware *middleware.AuthMiddleware) http.Handler {
 	if config.GinConfig == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -35,7 +36,9 @@ func NewHandler(dep RouterDep, config *config.Config) http.Handler {
 	}))
 
 	api := r.Group("/api")
+	api.Use(middleware.RequireAuth())
 	{
+		dep.AuthHandler.AuthRoutes(api)
 		dep.EventDep.EventRoutes(api)
 		dep.VenueDep.VenueRoutes(api)
 		dep.UserDep.UserRoutes(api)

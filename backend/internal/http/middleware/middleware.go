@@ -37,3 +37,54 @@ func (a *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 		g.Next()
 	}
 }
+
+// RequireRole
+func RequireRole(allowed ...string) gin.HandlerFunc {
+	allowedSet := map[string]struct{}{}
+	for _, r := range allowed {
+		allowedSet[r] = struct{}{}
+	}
+
+	return func(g *gin.Context) {
+		role := g.GetString("role")
+		if role == "" {
+			g.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+		if _, ok := allowedSet[role]; !ok {
+			g.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+		g.Next()
+	}
+}
+
+// RequireAnyScope verifica que el token tenga al menos uno de los scopes resqueridos.
+func RequireAnyScope(required ...string) gin.HandlerFunc {
+	req := map[string]struct{}{}
+	for _, s := range required {
+		req[s] = struct{}{}
+	}
+
+	return func(g *gin.Context) {
+		any, ok := g.Get("scopes")
+		if !ok {
+			g.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+
+		scopes, ok := any.([]string)
+		if !ok {
+			g.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+
+		for _, s := range scopes {
+			if _, ok := req[s]; ok {
+				g.Next()
+				return
+			}
+		}
+		g.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+	}
+}
