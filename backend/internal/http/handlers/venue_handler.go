@@ -21,7 +21,10 @@ func NewVenueHandler(svc venue.VenueService) *VenueHandler {
 	}
 }
 
-func (v *VenueHandler) VenueRoutes(r *gin.RouterGroup) {
+func (v *VenueHandler) PublicRoutes(r *gin.RouterGroup) {
+}
+
+func (v *VenueHandler) PrivateRoutes(r *gin.RouterGroup) {
 	context := r.Group("/venue")
 	{
 		context.GET("", middleware.RequireRole("admin"), v.getAllvenues)

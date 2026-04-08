@@ -36,12 +36,23 @@ func NewHandler(dep RouterDep, config *config.Config, middleware *middleware.Aut
 	}))
 
 	api := r.Group("/api")
-	api.Use(middleware.RequireAuth())
+
+	//Public
+	public := api.Group("")
 	{
-		dep.AuthHandler.AuthRoutes(api)
-		dep.EventDep.EventRoutes(api)
-		dep.VenueDep.VenueRoutes(api)
-		dep.UserDep.UserRoutes(api)
+		dep.AuthHandler.AuthRoutes(public)
+		dep.EventDep.PublicRoutes(public)
+		dep.VenueDep.PublicRoutes(public)
+		dep.UserDep.PublicRoutes(public)
+	}
+
+	//Private
+	private := api.Group("")
+	private.Use(middleware.RequireAuth())
+	{
+		dep.EventDep.PrivateRoutes(private)
+		dep.VenueDep.PrivateRoutes(private)
+		dep.UserDep.PrivateRoutes(private)
 	}
 
 	return r

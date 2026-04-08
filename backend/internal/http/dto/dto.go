@@ -29,7 +29,6 @@ type RequestCode struct {
 type AuthResult struct {
 	User         UserResponse `json:"user"`
 	AccessToken  string       `json:"accessToken"`
-	RefreshToken string       `json:"refreshToken"`
 	ExpiresInSec int64        `json:"expiresInSec"`
 }
 
@@ -37,7 +36,6 @@ func ToAuthResult(auth auth.Session) AuthResult {
 	return AuthResult{
 		User:         ToUserResponse(&auth.User),
 		AccessToken:  auth.AccessToken,
-		RefreshToken: auth.RefreshToken,
 		ExpiresInSec: auth.ExpiresInSec,
 	}
 }

@@ -35,6 +35,7 @@ func (a *AuthHandler) AuthRoutes(r *gin.RouterGroup) {
 		context.POST("/login", a.login)
 		context.POST("/refresh", a.refresh)
 		context.POST("/logout", a.logout)
+		context.POST("/signup/createUser", a.createUser)
 		context.POST("/signup/request-code", a.signupRequest)
 		context.POST("/signup/verify-code", a.signupVerify)
 		context.POST("/login/request-code", a.loginRequest)
@@ -59,8 +60,7 @@ func (a *AuthHandler) login(g *gin.Context) {
 	}
 
 	a.setRefreshCookie(g, authRes.RefreshToken)
-
-	g.JSON(http.StatusCreated, authRes)
+	g.JSON(http.StatusOK, dto.ToAuthResult(*authRes))
 }
 
 func (a *AuthHandler) refresh(g *gin.Context) {
@@ -78,8 +78,7 @@ func (a *AuthHandler) refresh(g *gin.Context) {
 	}
 
 	a.setRefreshCookie(g, authRes.RefreshToken)
-
-	g.JSON(http.StatusOK, authRes)
+	g.JSON(http.StatusOK, dto.ToAuthResult(*authRes))
 }
 
 func (a *AuthHandler) logout(g *gin.Context) {
@@ -98,6 +97,29 @@ func (a *AuthHandler) logout(g *gin.Context) {
 
 	a.clearRefreshCookie(g)
 	g.Status(http.StatusNoContent)
+}
+
+func (a *AuthHandler) createUser(g *gin.Context) {
+	var req *dto.UserRequest
+
+	if err := g.ShouldBindJSON(&req); err != nil {
+		g.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	authRes, err := a.app.CreateUser(g.Request.Context(), auth.UserParams{
+		Email:      req.Email,
+		Role:       req.Role,
+		Password:   req.Password,
+		AuthMethod: req.AuthMethod,
+	})
+	if err != nil {
+		g.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	a.setRefreshCookie(g, authRes.RefreshToken)
+	g.JSON(http.StatusOK, dto.ToAuthResult(*authRes))
 }
 
 func (a *AuthHandler) signupRequest(g *gin.Context) {
@@ -134,7 +156,7 @@ func (a *AuthHandler) signupVerify(g *gin.Context) {
 	}
 
 	a.setRefreshCookie(g, authRes.RefreshToken)
-	g.JSON(http.StatusOK, authRes)
+	g.JSON(http.StatusOK, dto.ToAuthResult(*authRes))
 }
 
 func (a *AuthHandler) loginRequest(g *gin.Context) {
@@ -171,7 +193,7 @@ func (a *AuthHandler) loginVerify(g *gin.Context) {
 	}
 
 	a.setRefreshCookie(g, authRes.RefreshToken)
-	g.JSON(http.StatusOK, authRes)
+	g.JSON(http.StatusOK, dto.ToAuthResult(*authRes))
 }
 
 func (a *AuthHandler) setRefreshCookie(g *gin.Context, refreshToken string) {

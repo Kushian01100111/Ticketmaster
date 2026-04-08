@@ -40,10 +40,10 @@ type UpdateUserParams struct {
 
 type UserService interface {
 	GetAllUsers(ctx context.Context) ([]user.User, error)
-	CreateUser(ctx context.Context, params UserParams) (*user.User, error)
 	GetUser(ctx context.Context, idhex string) (*user.User, error)
 	GetByEmail(ctx context.Context, email string) (*user.User, error)
-
+	CreateUser(ctx context.Context, params UserParams) (*user.User, error)
+	CreateUserB(ctx context.Context, user *user.User) (*user.User, error)
 	UpdateUser(ctx context.Context, idhex string, params UpdateUserParams) (*user.User, error)
 	DeleteUser(ctx context.Context, idhex string) error
 
@@ -61,11 +61,12 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 	}
 }
 
-func (s userService) GetAllUsers(ctx context.Context) ([]user.User, error) {
+func (s *userService) GetAllUsers(ctx context.Context) ([]user.User, error) {
 	return s.userRepo.GetAllUser(ctx)
 }
 
-func (s userService) CreateUser(ctx context.Context, params UserParams) (*user.User, error) {
+// Creates user from code sign up
+func (s *userService) CreateUser(ctx context.Context, params UserParams) (*user.User, error) {
 	if err := validateParam(params); err != nil {
 		return nil, err
 	}
@@ -106,7 +107,23 @@ func (s userService) CreateUser(ctx context.Context, params UserParams) (*user.U
 	return User, err
 }
 
-func (s userService) GetUser(ctx context.Context, idhex string) (*user.User, error) {
+// Create user from normal sign up
+func (s *userService) CreateUserB(ctx context.Context, user *user.User) (*user.User, error) {
+	failedLoginDate := time.Now().Add(-1 * time.Hour)
+
+	user.LastFailedLogin = &failedLoginDate
+	user.AuthMethods = []string{"password", "email_otp"}
+
+	id, err := s.userRepo.Create(user, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	user.ID = id
+	return user, err
+}
+
+func (s *userService) GetUser(ctx context.Context, idhex string) (*user.User, error) {
 	id, err := bson.ObjectIDFromHex(idhex)
 	if err != nil {
 		return nil, err
@@ -115,7 +132,7 @@ func (s userService) GetUser(ctx context.Context, idhex string) (*user.User, err
 	return s.userRepo.GetByID(id, ctx)
 }
 
-func (s userService) GetByEmail(ctx context.Context, email string) (*user.User, error) {
+func (s *userService) GetByEmail(ctx context.Context, email string) (*user.User, error) {
 	mail := strings.TrimSpace(strings.ToLower(email))
 	if err := validateEmail(mail); err != nil {
 		return nil, err
@@ -123,7 +140,7 @@ func (s userService) GetByEmail(ctx context.Context, email string) (*user.User, 
 	return s.userRepo.GetByEmail(mail, ctx)
 }
 
-func (s userService) UpdateUser(ctx context.Context, idhex string, params UpdateUserParams) (*user.User, error) {
+func (s *userService) UpdateUser(ctx context.Context, idhex string, params UpdateUserParams) (*user.User, error) {
 	if err := validateUpdateParam(params); err != nil {
 		return nil, err
 	}
@@ -172,7 +189,7 @@ func (s userService) UpdateUser(ctx context.Context, idhex string, params Update
 	return User, nil
 }
 
-func (s userService) DeleteUser(ctx context.Context, idhex string) error {
+func (s *userService) DeleteUser(ctx context.Context, idhex string) error {
 	id, err := bson.ObjectIDFromHex(idhex)
 	if err != nil {
 		return err

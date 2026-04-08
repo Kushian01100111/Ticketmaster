@@ -21,15 +21,21 @@ func NewEventHandler(svc event.EventService) *EventHandler {
 	return &EventHandler{app: svc}
 }
 
-func (e *EventHandler) EventRoutes(r *gin.RouterGroup) {
+func (e *EventHandler) PublicRoutes(r *gin.RouterGroup) {
+	context := r.Group("/event")
+	{
+		context.GET("/:id", e.getEvent)
+		context.GET("/search", e.searchEvents)
+	}
+}
+
+func (e *EventHandler) PrivateRoutes(r *gin.RouterGroup) {
 	context := r.Group("/event")
 	{
 		context.PUT("", middleware.RequireRole("editor", "admin"), e.createEvent)
 		context.GET("", middleware.RequireRole("admin"), e.getAllEvents)
-		context.GET("/:id", e.getEvent)
 		context.PATCH("/:id", middleware.RequireRole("editor", "admin"), e.updateEvent)
 		context.DELETE("/:id", middleware.RequireRole("editor", "admin"), e.deleteEvent)
-		context.GET("/search", e.searchEvents)
 	}
 }
 

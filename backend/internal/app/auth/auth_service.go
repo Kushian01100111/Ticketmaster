@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"net/mail"
 	"strings"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/Kushian01100111/Tickermaster/internal/repository"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -33,7 +35,19 @@ var (
 	ErrCreatedAtRequired   = errors.New("createdAt date required")
 	ErrExpiredAtRequired   = errors.New("expiredAt date required")
 	ErrInvalidOTP          = errors.New("invalid OTP")
+
+	ErrPasswordRequired = errors.New("password is required")
+	ErrRole             = errors.New("invalid role type")
+	ErrAuthMethod       = errors.New("invalid authmethod")
+	ErrAuthMethodLen    = errors.New("invalid amount of authmethods")
 )
+
+type UserParams struct {
+	Email      string
+	Role       string
+	Password   string
+	AuthMethod string
+}
 
 type LoginParams struct {
 	Email    string
@@ -57,6 +71,7 @@ type AuthService interface {
 	Refresh(ctx context.Context, refresh string) (*Session, error)
 	Logout(ctx context.Context, refresh string) error
 	LogoutAll(ctx context.Context, refresh string) error
+	CreateUser(ctx context.Context, params UserParams) (*Session, error)
 	SignupRequest(ctx context.Context, email string) error
 	SignupVerify(ctx context.Context, param VerifyParams) (*Session, error)
 	LoginRequest(ctx context.Context, email string) error
@@ -172,6 +187,34 @@ func (s *authService) LogoutAll(ctx context.Context, idHex string) error {
 	return s.authRepo.RevokeAllByUserID(ctx, oid)
 }
 
+func (s *authService) CreateUser(ctx context.Context, params UserParams) (*Session, error) {
+	if err := validateParam(params); err != nil {
+		return nil, err
+	}
+
+	email := normalizeEmail(params.Email)
+	if u, err := s.userSrv.GetByEmail(ctx, email); err == nil || u != nil {
+		return nil, ErrUserAlreadyExists
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	temp := string(hash)
+
+	u, err := s.userSrv.CreateUserB(ctx, &u.User{
+		Email:        email,
+		Role:         params.Role,
+		PasswordHash: &temp,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return s.issueSession(ctx, u)
+}
+
 func (s *authService) SignupRequest(ctx context.Context, email string) error {
 	mail := normalizeEmail(email)
 	if mail == "" {
@@ -191,6 +234,7 @@ func (s *authService) SignupRequest(ctx context.Context, email string) error {
 		Email:     mail,
 		CodeHash:  sha256Hex(code),
 		ExpiresAt: time.Now().Add(s.otpTTL),
+		Purpuse:   "signUp",
 		Attempts:  0,
 		CreatedAt: time.Now(),
 	}
@@ -248,6 +292,7 @@ func (s *authService) LoginRequest(ctx context.Context, email string) error {
 		Email:     mail,
 		CodeHash:  sha256Hex(code),
 		ExpiresAt: time.Now().Add(s.otpTTL),
+		Purpuse:   "login",
 		Attempts:  0,
 		CreatedAt: time.Now(),
 	}
@@ -397,6 +442,86 @@ func new6DigitCode() (string, error) {
 func sha256Hex(s string) string {
 	sum := sha256.Sum256([]byte(s))
 	return hex.EncodeToString(sum[:])
+}
+
+//
+
+func validateParam(params UserParams) error {
+	email := strings.TrimSpace(strings.ToLower(params.Email))
+	if err := validateEmail(email); err != nil {
+		return err
+	}
+
+	if err := validateRole(params.Role); err != nil {
+		return err
+	}
+
+	if err := validateAuthMethod(params.AuthMethod); err != nil {
+		return ErrAuthMethod
+	}
+
+	if params.AuthMethod == "password" {
+		if strings.TrimSpace(params.Password) == "" {
+			return ErrPasswordRequired
+		}
+	}
+
+	return nil
+}
+
+func validateEmail(email string) error {
+	addr, err := mail.ParseAddress(email)
+	if err != nil {
+		return ErrEmailInvalid
+	}
+
+	if addr.Address != email {
+		return ErrEmailInvalid
+	}
+
+	return nil
+}
+
+func passwordMethodOk(methods []string) bool {
+	for _, val := range methods {
+		if val == "password" {
+			return true
+		}
+	}
+	return false
+}
+
+type Role string
+
+const (
+	RoleCostumer Role = "costumer"
+	RoleEditor   Role = "editor"
+	RoleAdmin    Role = "admin"
+)
+
+func validateRole(role string) error {
+	switch Role(role) {
+	case RoleCostumer, RoleEditor, RoleAdmin:
+		return nil
+	default:
+		return ErrRole
+	}
+}
+
+type AuthMethod string
+
+const (
+	AuthPass  AuthMethod = "password"
+	AuthEmail AuthMethod = "email_otp"
+)
+
+func validateAuthMethod(method string) error {
+	switch AuthMethod(method) {
+	case AuthPass, AuthEmail:
+		return nil
+	default:
+		return ErrAuthMethod
+	}
 }
 
 func normalizeEmail(email string) string {

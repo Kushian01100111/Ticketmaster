@@ -17,11 +17,17 @@ func NewUserHandler(svc user.UserService) *UserHandler {
 	return &UserHandler{app: svc}
 }
 
-func (u *UserHandler) UserRoutes(r *gin.RouterGroup) {
+func (u *UserHandler) PublicRoutes(r *gin.RouterGroup) {
+	context := r.Group("/user")
+	{
+		context.POST("", u.createUser)
+	}
+}
+
+func (u *UserHandler) PrivateRoutes(r *gin.RouterGroup) {
 	context := r.Group("/user")
 	{
 		context.GET("", middleware.RequireRole("admin"), u.getAllUsers)
-		context.PUT("", u.createUser)
 		context.GET("/:id", middleware.RequireRole("admin"), u.getUser)
 		context.PATCH("/:id", middleware.RequireRole("costumer", "admin"), u.updateUser)
 		context.DELETE("/:id", middleware.RequireRole("costumer", "admin"), u.deleteUser)
