@@ -71,6 +71,7 @@ func (r *otpRepo) GetActiveByEmail(ctx context.Context, mail string, purpuse str
 	}
 
 	var otp otp.OTPChallange
+
 	if err := r.db.Collection("otp").FindOne(ctx, filter).Decode(otp); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, ErrChallangeNotFound
