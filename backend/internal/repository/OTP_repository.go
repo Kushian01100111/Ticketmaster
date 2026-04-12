@@ -70,16 +70,16 @@ func (r *otpRepo) GetActiveByEmail(ctx context.Context, mail string, purpuse str
 		"consumedAt": bson.M{"$exists": false},
 	}
 
-	var otp otp.OTPChallange
+	var otp *otp.OTPChallange
 
-	if err := r.db.Collection("otp").FindOne(ctx, filter).Decode(otp); err != nil {
+	if err := r.db.Collection("otp").FindOne(ctx, filter).Decode(&otp); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, ErrChallangeNotFound
 		}
 		return nil, err
 	}
 
-	return &otp, nil
+	return otp, nil
 }
 
 func (r *otpRepo) IncAttempts(ctx context.Context, email string) error {

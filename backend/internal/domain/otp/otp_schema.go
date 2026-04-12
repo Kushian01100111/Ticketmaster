@@ -26,8 +26,8 @@ func otpSchema() bson.D {
 				{Key: "codeHash", Value: bson.D{{Key: "bsonType", Value: "string"}}},
 				{Key: "expiresAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
 				{Key: "attempts", Value: bson.D{{Key: "bsonType", Value: "int"}}},
-				{Key: "consumedAt", Value: bson.D{{Key: "consumedAt", Value: "date"}}},
-				{Key: "createdAt", Value: bson.D{{Key: "createdAt", Value: "date"}}},
+				{Key: "consumedAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
+				{Key: "createdAt", Value: bson.D{{Key: "bsonType", Value: "date"}}},
 			}},
 		},
 	}}
@@ -66,7 +66,7 @@ func EnsureOtpCollection(ctx context.Context, db *mongo.Database) error {
 		return UpdateOtpCollecion(ctx, db)
 	}
 
-	coll := db.Collection("session")
+	coll := db.Collection("otp")
 	_, err = coll.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys:    bson.D{{Key: "email", Value: 1}, {Key: "purpuse", Value: 1}},

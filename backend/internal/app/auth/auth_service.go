@@ -38,7 +38,12 @@ var (
 	ErrUserAlreadyExists    = errors.New("user is already created")
 	ErrCreatedAtRequired    = errors.New("createdAt date required")
 	ErrExpiredAtRequired    = errors.New("expiredAt date required")
-	ErrInvalidOTP           = errors.New("invalid OTP")
+
+	ErrInvalidOTP     = errors.New("invalid OTP")
+	ErrEmptyOTP       = errors.New("empty otp challange")
+	ErrOTPNotFound    = errors.New("otp challange not found")
+	ErrOTPExpired     = errors.New("otp challange is expired")
+	ErrOTPInvalidCode = errors.New("invalid otp challange code")
 
 	ErrPasswordRequired = errors.New("password is required")
 	ErrRole             = errors.New("invalid role type")
@@ -321,11 +326,11 @@ func (s *authService) LoginVerify(ctx context.Context, params VerifyParams) (*Se
 	email := normalizeEmail(params.Email)
 	code := strings.TrimSpace(params.Code)
 	if email == "" || code == "" {
-		return nil, ErrInvalidOTP
+		return nil, ErrEmptyOTP
 	}
 
 	if err := s.verifyAndConsumeOTP(ctx, email, code, "login"); err != nil {
-		return nil, ErrInvalidOTP
+		return nil, err
 	}
 
 	u, err := s.userSrv.GetByEmail(ctx, email)
@@ -350,16 +355,16 @@ func (s *authService) LoginVerify(ctx context.Context, params VerifyParams) (*Se
 func (s *authService) verifyAndConsumeOTP(ctx context.Context, email, code, purpuse string) error {
 	ch, err := s.otpSrv.GetActiveByEmail(ctx, email, purpuse)
 	if err != nil || ch == nil {
-		return ErrInvalidOTP
+		return ErrOTPNotFound
 	}
 
 	if ch.ConsumedAt != nil || time.Now().After(ch.ExpiresAt) {
-		return ErrInvalidOTP
+		return ErrOTPExpired
 	}
 
 	if sha256Hex(code) != ch.CodeHash {
 		_ = s.otpSrv.IncAttempts(ctx, email)
-		return ErrInvalidOTP
+		return ErrOTPInvalidCode
 	}
 
 	_ = s.otpSrv.Consume(ctx, email)
