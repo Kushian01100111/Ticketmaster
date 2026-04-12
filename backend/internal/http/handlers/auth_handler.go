@@ -90,7 +90,7 @@ func (a *AuthHandler) logout(g *gin.Context) {
 
 	if rt != "" {
 		if err := a.app.Logout(g.Request.Context(), rt); err != nil {
-			g.JSON(http.StatusUnauthorized, err.Error())
+			g.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
 	}
@@ -200,7 +200,7 @@ func (a *AuthHandler) setRefreshCookie(g *gin.Context, refreshToken string) {
 	http.SetCookie(g.Writer, &http.Cookie{
 		Name:     a.refreshCookie,
 		Value:    refreshToken,
-		Path:     "/auth",
+		Path:     "/",
 		Domain:   a.cookieDomain,
 		MaxAge:   a.refreshMaxAge,
 		HttpOnly: true,
@@ -213,7 +213,7 @@ func (a *AuthHandler) clearRefreshCookie(g *gin.Context) {
 	http.SetCookie(g.Writer, &http.Cookie{
 		Name:     a.refreshCookie,
 		Value:    "",
-		Path:     "/auth",
+		Path:     "/",
 		Domain:   a.cookieDomain,
 		MaxAge:   -1,
 		HttpOnly: true,

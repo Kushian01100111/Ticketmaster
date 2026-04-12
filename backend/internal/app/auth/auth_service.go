@@ -25,16 +25,20 @@ import (
 )
 
 var (
-	ErrRefreshInvalid      = errors.New("invalid refresh string")
-	ErrEmailInvalid        = errors.New("invalid mail")
-	ErrInvalidCreadentials = errors.New("invalid creadentials")
-	ErrMethodNotAllowed    = errors.New("this method of sign in is no available for this user")
-	ErrHashRequired        = errors.New("hash is required")
-	ErrUserRequired        = errors.New("user is required")
-	ErrUserAlreadyExists   = errors.New("user is already created")
-	ErrCreatedAtRequired   = errors.New("createdAt date required")
-	ErrExpiredAtRequired   = errors.New("expiredAt date required")
-	ErrInvalidOTP          = errors.New("invalid OTP")
+	ErrRefreshInvalidString = errors.New("invalid refresh string")
+	ErrRefreshInvalid       = errors.New("invalid refresh token")
+	ErrRefreshSession       = errors.New("there is no session related to this token")
+	ErrRefreshRevoked       = errors.New("this token has been already revoke")
+	ErrRefreshExpired       = errors.New("this token has already expired")
+	ErrEmailInvalid         = errors.New("invalid mail")
+	ErrInvalidCreadentials  = errors.New("invalid creadentials")
+	ErrMethodNotAllowed     = errors.New("this method of sign in is no available for this user")
+	ErrHashRequired         = errors.New("hash is required")
+	ErrUserRequired         = errors.New("user is required")
+	ErrUserAlreadyExists    = errors.New("user is already created")
+	ErrCreatedAtRequired    = errors.New("createdAt date required")
+	ErrExpiredAtRequired    = errors.New("expiredAt date required")
+	ErrInvalidOTP           = errors.New("invalid OTP")
 
 	ErrPasswordRequired = errors.New("password is required")
 	ErrRole             = errors.New("invalid role type")
@@ -149,13 +153,22 @@ func (s *authService) Login(ctx context.Context, params LoginParams) (*Session, 
 func (s *authService) Refresh(ctx context.Context, refresh string) (*Session, error) {
 	refreshToken := strings.TrimSpace(refresh)
 	if refreshToken == "" {
-		return nil, ErrRefreshInvalid
+		return nil, ErrRefreshInvalidString
 	}
-	hash := sha256Hex(refresh)
 
+	hash := sha256Hex(refresh)
 	sess, err := s.authRepo.GetByHash(ctx, hash)
-	if err != nil || sess == nil || sess.RevokedAt != nil || time.Now().After(sess.ExpiresAt) {
-		return nil, ErrRefreshInvalid
+	if err != nil {
+		return nil, err
+	}
+	if sess == nil {
+		return nil, ErrRefreshSession
+	}
+	if sess.RevokedAt != nil {
+		return nil, ErrRefreshRevoked
+	}
+	if time.Now().After(sess.ExpiresAt) {
+		return nil, ErrRefreshExpired
 	}
 
 	user, err := s.userSrv.GetUser(ctx, sess.UserID.Hex())
@@ -176,7 +189,8 @@ func (s *authService) Logout(ctx context.Context, refresh string) error {
 	if refresh == "" {
 		return nil
 	}
-	return s.authRepo.RevokeRefreshToken(ctx, refreshToken)
+	hash := sha256Hex(refreshToken)
+	return s.authRepo.RevokeRefreshToken(ctx, hash)
 }
 
 func (s *authService) LogoutAll(ctx context.Context, idHex string) error {
@@ -440,6 +454,7 @@ func new6DigitCode() (string, error) {
 }
 
 func sha256Hex(s string) string {
+	s = strings.TrimSpace(s)
 	sum := sha256.Sum256([]byte(s))
 	return hex.EncodeToString(sum[:])
 }

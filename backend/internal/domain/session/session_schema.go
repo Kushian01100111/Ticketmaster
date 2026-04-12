@@ -51,7 +51,7 @@ func EnsureSessionCollection(ctx context.Context, db *mongo.Database) error {
 			SetValidator(validator).
 			SetValidationAction("error").
 			SetValidationLevel("strict")
-		if err := db.CreateCollection(ctx, "sesssion", opts); err != nil {
+		if err := db.CreateCollection(ctx, "session", opts); err != nil {
 			return err
 		}
 	}

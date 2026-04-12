@@ -46,18 +46,18 @@ func (r *mongoAuthStorage) CreateRefreshToken(ctx context.Context, s session.Ref
 	return nil
 }
 func (r *mongoAuthStorage) GetByHash(ctx context.Context, hash string) (*session.RefreshSession, error) {
-	var out session.RefreshSession
+	var out *session.RefreshSession
 	err := r.db.Collection("session").
 		FindOne(ctx, bson.D{{Key: "hash", Value: hash}}).
-		Decode(out)
+		Decode(&out)
 
 	if err != nil {
 		return nil, err
 	}
-	return &out, nil
+	return out, nil
 }
-func (r *mongoAuthStorage) RevokeRefreshToken(ctx context.Context, refreshTokenHash string) error {
-	filter := bson.M{"hash": refreshTokenHash}
+func (r *mongoAuthStorage) RevokeRefreshToken(ctx context.Context, hash string) error {
+	filter := bson.M{"hash": hash}
 	set := bson.M{
 		"revokedAt": time.Now(),
 	}
