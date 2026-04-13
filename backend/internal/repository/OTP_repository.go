@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/domain/otp"
@@ -14,12 +13,12 @@ import (
 
 var (
 	ErrInvalidOTP        = errors.New("invalid challenge")
-	ErrChallangeNotFound = errors.New("challenge not found")
+	ErrChallengeNotFound = errors.New("challenge not found")
 )
 
 type OTPRepo interface {
-	CreateOrReplace(ctx context.Context, ch otp.OTPChallange) error
-	GetActiveByEmail(ctx context.Context, mail string, purpuse string) (*otp.OTPChallange, error)
+	CreateOrReplace(ctx context.Context, ch otp.OTPChallenge) error
+	GetActiveByEmail(ctx context.Context, mail string, purpuse string) (*otp.OTPChallenge, error)
 	IncAttempts(ctx context.Context, email string) error
 	Consume(ctx context.Context, email string, when time.Time) error
 }
@@ -32,9 +31,9 @@ func NewOTPRepository(db *mongo.Database) OTPRepo {
 	return &otpRepo{db: db}
 }
 
-func (otp *otpRepo) CreateOrReplace(ctx context.Context, ch otp.OTPChallange) error {
+func (otp *otpRepo) CreateOrReplace(ctx context.Context, ch otp.OTPChallenge) error {
 	filter := bson.M{
-		"email":   strings.ToLower(strings.TrimSpace(ch.Email)),
+		"email":   ch.Email,
 		"purpuse": ch.Purpuse,
 	}
 
@@ -48,7 +47,7 @@ func (otp *otpRepo) CreateOrReplace(ctx context.Context, ch otp.OTPChallange) er
 			"createdAt": ch.CreatedAt,
 		},
 		"$unset": bson.M{
-			"cosumeAt": "",
+			"consumedAt": "",
 		},
 	}
 
@@ -62,7 +61,7 @@ func (otp *otpRepo) CreateOrReplace(ctx context.Context, ch otp.OTPChallange) er
 	return nil
 }
 
-func (r *otpRepo) GetActiveByEmail(ctx context.Context, mail string, purpuse string) (*otp.OTPChallange, error) {
+func (r *otpRepo) GetActiveByEmail(ctx context.Context, mail string, purpuse string) (*otp.OTPChallenge, error) {
 	filter := bson.M{
 		"email":      mail,
 		"purpuse":    purpuse,
@@ -70,11 +69,11 @@ func (r *otpRepo) GetActiveByEmail(ctx context.Context, mail string, purpuse str
 		"consumedAt": bson.M{"$exists": false},
 	}
 
-	var otp *otp.OTPChallange
+	var otp *otp.OTPChallenge
 
 	if err := r.db.Collection("otp").FindOne(ctx, filter).Decode(&otp); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, ErrChallangeNotFound
+			return nil, ErrChallengeNotFound
 		}
 		return nil, err
 	}

@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type OTPChallange struct {
+type OTPChallenge struct {
 	ID         bson.ObjectID `json:"_id,omitempty"`
 	Email      string        `json:"email"`
 	Purpuse    string        `json:"porpuse"`

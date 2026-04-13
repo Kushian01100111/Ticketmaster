@@ -1,4 +1,4 @@
-package otpChallange
+package otpChallenge
 
 import (
 	"context"
@@ -28,7 +28,7 @@ type OTPParams struct {
 
 type OTPService interface {
 	CreateOrReplace(ctx context.Context, ch OTPParams) error
-	GetActiveByEmail(ctx context.Context, email string, purpuse string) (*otp.OTPChallange, error)
+	GetActiveByEmail(ctx context.Context, email string, purpuse string) (*otp.OTPChallenge, error)
 	IncAttempts(ctx context.Context, email string) error
 	Consume(ctx context.Context, email string) error
 }
@@ -55,8 +55,8 @@ func (o *otpService) CreateOrReplace(ctx context.Context, ch OTPParams) error {
 		ch.CreatedAt = now
 	}
 
-	err := o.otpRepo.CreateOrReplace(ctx, otp.OTPChallange{
-		Email:     ch.Email,
+	err := o.otpRepo.CreateOrReplace(ctx, otp.OTPChallenge{
+		Email:     strings.ToLower(strings.TrimSpace(ch.Email)),
 		Purpuse:   ch.Purpuse,
 		CodeHash:  ch.CodeHash,
 		ExpiresAt: ch.ExpiresAt,
@@ -69,7 +69,7 @@ func (o *otpService) CreateOrReplace(ctx context.Context, ch OTPParams) error {
 
 	return nil
 }
-func (o *otpService) GetActiveByEmail(ctx context.Context, email string, purpuse string) (*otp.OTPChallange, error) {
+func (o *otpService) GetActiveByEmail(ctx context.Context, email string, purpuse string) (*otp.OTPChallenge, error) {
 	mail := strings.ToLower(strings.TrimSpace(email))
 	purpuse = strings.TrimSpace(purpuse)
 

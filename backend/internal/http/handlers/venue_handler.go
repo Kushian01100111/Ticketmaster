@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
-	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/venue"
 	"github.com/Kushian01100111/Tickermaster/internal/http/dto"
@@ -36,10 +34,7 @@ func (v *VenueHandler) PrivateRoutes(r *gin.RouterGroup) {
 }
 
 func (v *VenueHandler) getAllvenues(g *gin.Context) {
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	venues, err := v.app.GetAllVenues(ctx)
+	venues, err := v.app.GetAllVenues(g.Request.Context())
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -51,10 +46,7 @@ func (v *VenueHandler) getAllvenues(g *gin.Context) {
 func (v *VenueHandler) getVenue(g *gin.Context) {
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	venue, err := v.app.GetVenue(id, ctx)
+	venue, err := v.app.GetVenue(id, g.Request.Context())
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -73,16 +65,13 @@ func (v *VenueHandler) updateVenue(g *gin.Context) {
 
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
 	venue, err := v.app.UpdateVenue(id, venue.VenueParams{
 		Name:      req.Name,
 		SeatType:  req.SeatType,
 		SeatMapID: req.SeatMapID,
 		Address:   req.Address,
 		Capacity:  req.Capacity,
-	}, ctx)
+	}, g.Request.Context())
 
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -95,10 +84,7 @@ func (v *VenueHandler) updateVenue(g *gin.Context) {
 func (v *VenueHandler) deleteVenue(g *gin.Context) {
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	if err := v.app.DeleteVenue(id, ctx); err != nil {
+	if err := v.app.DeleteVenue(id, g.Request.Context()); err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -114,16 +100,13 @@ func (v *VenueHandler) createVenue(g *gin.Context) {
 		return
 	}
 
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
 	venue, err := v.app.CreateVenue(venue.VenueParams{
 		Name:      req.Name,
 		SeatType:  req.SeatType,
 		SeatMapID: req.SeatMapID,
 		Address:   req.Address,
 		Capacity:  req.Capacity,
-	}, ctx)
+	}, g.Request.Context())
 
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -131,8 +114,4 @@ func (v *VenueHandler) createVenue(g *gin.Context) {
 	}
 
 	g.JSON(http.StatusCreated, dto.ToVenueResponse(venue))
-}
-
-func generateCtx() (context.Context, context.CancelFunc) {
-	return context.WithTimeout(context.Background(), 2*time.Second)
 }

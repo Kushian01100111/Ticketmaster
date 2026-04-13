@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/email"
-	"github.com/Kushian01100111/Tickermaster/internal/app/otpChallange"
+	otpChallenge "github.com/Kushian01100111/Tickermaster/internal/app/otpChallange"
 	"github.com/Kushian01100111/Tickermaster/internal/app/user"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/session"
 	u "github.com/Kushian01100111/Tickermaster/internal/domain/user"
@@ -40,10 +40,10 @@ var (
 	ErrExpiredAtRequired    = errors.New("expiredAt date required")
 
 	ErrInvalidOTP     = errors.New("invalid OTP")
-	ErrEmptyOTP       = errors.New("empty otp challange")
-	ErrOTPNotFound    = errors.New("otp challange not found")
-	ErrOTPExpired     = errors.New("otp challange is expired")
-	ErrOTPInvalidCode = errors.New("invalid otp challange code")
+	ErrEmptyOTP       = errors.New("empty otp Challenge")
+	ErrOTPNotFound    = errors.New("otp Challenge not found")
+	ErrOTPExpired     = errors.New("otp Challenge is expired")
+	ErrOTPInvalidCode = errors.New("invalid otp Challenge code")
 
 	ErrPasswordRequired = errors.New("password is required")
 	ErrRole             = errors.New("invalid role type")
@@ -88,7 +88,7 @@ type AuthService interface {
 }
 
 type authService struct {
-	otpSrv     otpChallange.OTPService
+	otpSrv     otpChallenge.OTPService
 	authRepo   repository.AuthRepository
 	userSrv    user.UserService
 	mailer     email.EmailSender
@@ -104,7 +104,7 @@ type AuthConfig struct {
 }
 
 func NewAuthService(
-	otpRepo otpChallange.OTPService,
+	otpRepo otpChallenge.OTPService,
 	authRepo repository.AuthRepository,
 	userRepo user.UserService,
 	mailer email.EmailSender,
@@ -249,7 +249,7 @@ func (s *authService) SignupRequest(ctx context.Context, email string) error {
 		return err
 	}
 
-	ch := otpChallange.OTPParams{
+	ch := otpChallenge.OTPParams{
 		Email:     mail,
 		CodeHash:  sha256Hex(code),
 		ExpiresAt: time.Now().Add(s.otpTTL),
@@ -307,7 +307,7 @@ func (s *authService) LoginRequest(ctx context.Context, email string) error {
 		return err
 	}
 
-	ch := otpChallange.OTPParams{
+	ch := otpChallenge.OTPParams{
 		Email:     mail,
 		CodeHash:  sha256Hex(code),
 		ExpiresAt: time.Now().Add(s.otpTTL),

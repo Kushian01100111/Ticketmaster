@@ -47,9 +47,6 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 		return
 	}
 
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
 	event, err := e.app.CreateEvent(event.EventParams{
 		Title:             req.Title,
 		Description:       req.Description,
@@ -63,7 +60,7 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 		Status:            "draft",
 		Availability:      req.Availability,
 		Visibility:        req.Visibility,
-	}, ctx)
+	}, g.Request.Context())
 
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -76,10 +73,7 @@ func (e *EventHandler) createEvent(g *gin.Context) {
 func (e *EventHandler) getEvent(g *gin.Context) {
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	event, err := e.app.GetEvent(id, ctx)
+	event, err := e.app.GetEvent(id, g.Request.Context())
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -89,10 +83,7 @@ func (e *EventHandler) getEvent(g *gin.Context) {
 }
 
 func (e *EventHandler) getAllEvents(g *gin.Context) {
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	events, err := e.app.GetAllEvents(ctx)
+	events, err := e.app.GetAllEvents(g.Request.Context())
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -110,10 +101,6 @@ func (e *EventHandler) updateEvent(g *gin.Context) {
 	}
 
 	id := g.Param("id")
-
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
 	event, err := e.app.UpdateEvent(id, event.EventParams{
 		Title:             req.Title,
 		Description:       req.Description,
@@ -127,7 +114,7 @@ func (e *EventHandler) updateEvent(g *gin.Context) {
 		Status:            req.Status,
 		Availability:      req.Availability,
 		Visibility:        req.Visibility,
-	}, ctx)
+	}, g.Request.Context())
 
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -139,10 +126,7 @@ func (e *EventHandler) updateEvent(g *gin.Context) {
 func (e *EventHandler) deleteEvent(g *gin.Context) {
 	id := g.Param("id")
 
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
-	if err := e.app.DeleteEvent(id, ctx); err != nil {
+	if err := e.app.DeleteEvent(id, g.Request.Context()); err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -157,11 +141,8 @@ func (e *EventHandler) searchEvents(g *gin.Context) {
 		return
 	}
 
-	ctx, cancel := generateCtx() // Cambiar a g.Request.Context
-	defer cancel()
-
 	events, err := e.app.SearchEvent(event.SearchParams{
-		Tokens:       req.Query, // Tener en cuenta en el futuro searchTexts noramlizados para todos los eventos
+		Tokens:       req.Query, // Tener en cuenta en el futuro searchTexts normalizados para todos los eventos
 		DateForm:     req.DateFrom,
 		DateTo:       req.DateTo,
 		Currency:     req.Currency,
@@ -169,7 +150,7 @@ func (e *EventHandler) searchEvents(g *gin.Context) {
 		Availability: req.Availability,
 		SortBy:       req.SortBy,
 		SortDir:      req.SortDir,
-	}, ctx)
+	}, g.Request.Context())
 
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

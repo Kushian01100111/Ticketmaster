@@ -13,7 +13,7 @@ import (
 	"github.com/Kushian01100111/Tickermaster/internal/app/auth"
 	"github.com/Kushian01100111/Tickermaster/internal/app/email"
 	"github.com/Kushian01100111/Tickermaster/internal/app/event"
-	"github.com/Kushian01100111/Tickermaster/internal/app/otpChallange"
+	otpChallenge "github.com/Kushian01100111/Tickermaster/internal/app/otpChallange"
 	"github.com/Kushian01100111/Tickermaster/internal/app/user"
 	"github.com/Kushian01100111/Tickermaster/internal/app/venue"
 	"github.com/Kushian01100111/Tickermaster/internal/config"
@@ -72,7 +72,7 @@ func main() {
 	eventSvc := event.NewEventService(eventRepo, venueRepo)
 	venueSvc := venue.NewVenueService(venueRepo)
 	userSvc := user.NewUserService(userRepo)
-	otpSrv := otpChallange.NewOTPService(otpRepo, userRepo)
+	otpSrv := otpChallenge.NewOTPService(otpRepo, userRepo)
 	authSrv := auth.NewAuthService(
 		otpSrv,
 		authRepo,
