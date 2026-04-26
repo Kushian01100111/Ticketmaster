@@ -44,6 +44,7 @@ type AccessClaims struct {
 	jwt.RegisteredClaims
 }
 
+// Creates a new JWTManager instance
 func NewJWTManager(cfg JWTConfig) (*JWTManager, error) {
 	if cfg.Secret == "" {
 		return nil, ErrAuthSecretRequired
@@ -76,6 +77,7 @@ func NewJWTManager(cfg JWTConfig) (*JWTManager, error) {
 	}, nil
 }
 
+// Creates a new accessToken,  validates user/role/scopes of request, and returns the resulting accessToken and the expiration date, otherwise a error message
 func (j *JWTManager) NewAccessToken(userID, role string, scopes []string) (string, time.Time, error) {
 	if len(j.Secret) == 0 {
 		return "", time.Time{}, ErrAuthSecretEmpty
