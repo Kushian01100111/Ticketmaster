@@ -59,6 +59,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Redis -> planing
 	hasher := session.NewBcryptHasher(0)
 	middleware := middleware.NewAuthMiddleware(JWTManager)
 
