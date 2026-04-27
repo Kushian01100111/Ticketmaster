@@ -59,20 +59,26 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Redis -> planing
+	// Redis
 	hasher := session.NewBcryptHasher(0)
-	middleware := middleware.NewAuthMiddleware(JWTManager)
+	authMiddleware := middleware.NewAuthMiddleware(JWTManager)
 
-	authRepo := repository.NewAuthRepository(db.Database(config.DB))
+	//Entities repositories
 	eventRepo := repository.NewEventRepository(db.Database(config.DB))
 	venueRepo := repository.NewVenueRepository(db.Database(config.DB))
 	userRepo := repository.NewUserRepository(db.Database(config.DB))
+
+	//Non-entities repositories
+	authRepo := repository.NewAuthRepository(db.Database(config.DB))
 	otpRepo := repository.NewOTPRepository(db.Database(config.DB))
 	emailRepo := email.NewEmailSender(config.ResendAPIKey, config.EmailFrom)
 
+	// Entities service logic
 	eventSvc := event.NewEventService(eventRepo, venueRepo)
 	venueSvc := venue.NewVenueService(venueRepo)
 	userSvc := user.NewUserService(userRepo)
+
+	// Non-entities service logic
 	otpSrv := otpChallenge.NewOTPService(otpRepo, userRepo)
 	authSrv := auth.NewAuthService(
 		otpSrv,
@@ -84,19 +90,23 @@ func main() {
 		auth.AuthConfig{OTPTTL: 10 * time.Minute, RefreshTTL: 30 * 24 * time.Hour},
 	)
 
+	// handlers
 	authHandler := handlers.NewAuthHandler(authSrv)
 	eventHandler := handlers.NewEventHandler(eventSvc)
 	venueHandler := handlers.NewVenueHandler(venueSvc)
 	userHandler := handlers.NewUserHandler(userSvc)
 
+	// Main handler of the application
 	r := http1.NewHandler(http1.RouterDep{
 		AuthHandler: authHandler,
 		EventDep:    eventHandler,
 		VenueDep:    venueHandler,
 		UserDep:     userHandler},
 		config,
-		middleware)
+		middleware.Logger(),
+		authMiddleware)
 
+	// Server <- is missing some stuff
 	srv := &http.Server{
 		Addr:    *addr,
 		Handler: r,

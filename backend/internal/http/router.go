@@ -19,12 +19,14 @@ type RouterDep struct {
 	UserDep     *handlers.UserHandler
 }
 
-func NewHandler(dep RouterDep, config *config.Config, middleware *middleware.AuthMiddleware) http.Handler {
+func NewHandler(dep RouterDep, config *config.Config, logger gin.HandlerFunc, auth *middleware.AuthMiddleware) http.Handler {
 	if config.GinConfig == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(logger)
+	r.Use(gin.Recovery())
 
 	r.Use(cors.New(cors.Config{
 		AllowAllOrigins:  true,
@@ -48,7 +50,7 @@ func NewHandler(dep RouterDep, config *config.Config, middleware *middleware.Aut
 
 	//Private
 	private := api.Group("")
-	private.Use(middleware.RequireAuth())
+	private.Use(auth.RequireAuth())
 	{
 		dep.EventDep.PrivateRoutes(private)
 		dep.VenueDep.PrivateRoutes(private)
