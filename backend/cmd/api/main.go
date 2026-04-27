@@ -11,9 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/auth"
+	"github.com/Kushian01100111/Tickermaster/internal/app/booking"
 	"github.com/Kushian01100111/Tickermaster/internal/app/email"
 	"github.com/Kushian01100111/Tickermaster/internal/app/event"
-	otpChallenge "github.com/Kushian01100111/Tickermaster/internal/app/otpChallange"
+	"github.com/Kushian01100111/Tickermaster/internal/app/otpChallenge"
 	"github.com/Kushian01100111/Tickermaster/internal/app/user"
 	"github.com/Kushian01100111/Tickermaster/internal/app/venue"
 	"github.com/Kushian01100111/Tickermaster/internal/config"
@@ -23,6 +24,7 @@ import (
 	"github.com/Kushian01100111/Tickermaster/internal/http/middleware"
 	"github.com/Kushian01100111/Tickermaster/internal/repository"
 	"github.com/Kushian01100111/Tickermaster/internal/storage/mongodb"
+	redisDB "github.com/Kushian01100111/Tickermaster/internal/storage/redisdb"
 )
 
 func main() {
@@ -34,8 +36,17 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
+	addr := flag.String("addr", ":"+config.Port, "HTTP network address")
 
+	// MongoDB
 	db, err = mongodb.ConnectDB(config.DSN, config.DB)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	// RedisDB
+	rdb, err := redisDB.ConnectRDB(config.RDBSecrets)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
@@ -43,23 +54,15 @@ func main() {
 
 	defer func() {
 		_ = db.Disconnect(context.Background())
+		_ = rdb.Conn().Close()
 	}()
 
-	addr := flag.String("addr", ":"+config.Port, "HTTP network address")
-
-	JWTManager, err := session.NewJWTManager(session.JWTConfig{
-		Secret:    config.JWTSECRET,
-		Issuer:    "booking",
-		Audience:  "booking-web",
-		AccessTTL: 15 * time.Minute,
-		ClockSkew: 30 * time.Minute,
-	})
+	JWTManager, err := session.NewJWTManager(config.JWTSecrets)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
 
-	// Redis
 	hasher := session.NewBcryptHasher(0)
 	authMiddleware := middleware.NewAuthMiddleware(JWTManager)
 
@@ -70,7 +73,8 @@ func main() {
 
 	//Non-entities repositories
 	authRepo := repository.NewAuthRepository(db.Database(config.DB))
-	otpRepo := repository.NewOTPRepository(db.Database(config.DB))
+	otpRepo := repository.NewOTPRepository(db.Database(config.DB), rdb)
+	bookingRepo := repository.NewBookingRepo(rdb)
 	emailRepo := email.NewEmailSender(config.ResendAPIKey, config.EmailFrom)
 
 	// Entities service logic
@@ -79,6 +83,7 @@ func main() {
 	userSvc := user.NewUserService(userRepo)
 
 	// Non-entities service logic
+	bookingSrv := booking.NewBookingService(bookingRepo)
 	otpSrv := otpChallenge.NewOTPService(otpRepo, userRepo)
 	authSrv := auth.NewAuthService(
 		otpSrv,
@@ -91,6 +96,7 @@ func main() {
 	)
 
 	// handlers
+	bookingHandler := handlers.NewBookingHandler(bookingSrv)
 	authHandler := handlers.NewAuthHandler(authSrv)
 	eventHandler := handlers.NewEventHandler(eventSvc)
 	venueHandler := handlers.NewVenueHandler(venueSvc)
@@ -98,10 +104,11 @@ func main() {
 
 	// Main handler of the application
 	r := http1.NewHandler(http1.RouterDep{
-		AuthHandler: authHandler,
-		EventDep:    eventHandler,
-		VenueDep:    venueHandler,
-		UserDep:     userHandler},
+		AuthHandler:    authHandler,
+		BookingHandler: bookingHandler,
+		EventDep:       eventHandler,
+		VenueDep:       venueHandler,
+		UserDep:        userHandler},
 		config,
 		middleware.Logger(),
 		authMiddleware)

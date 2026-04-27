@@ -13,10 +13,11 @@ import (
 )
 
 type RouterDep struct {
-	AuthHandler *handlers.AuthHandler
-	EventDep    *handlers.EventHandler
-	VenueDep    *handlers.VenueHandler
-	UserDep     *handlers.UserHandler
+	AuthHandler    *handlers.AuthHandler
+	BookingHandler *handlers.BookingHandler
+	EventDep       *handlers.EventHandler
+	VenueDep       *handlers.VenueHandler
+	UserDep        *handlers.UserHandler
 }
 
 func NewHandler(dep RouterDep, config *config.Config, logger gin.HandlerFunc, auth *middleware.AuthMiddleware) http.Handler {
@@ -43,6 +44,7 @@ func NewHandler(dep RouterDep, config *config.Config, logger gin.HandlerFunc, au
 	public := api.Group("")
 	{
 		dep.AuthHandler.AuthRoutes(public)
+		dep.BookingHandler.PublicRoutes(public)
 		dep.EventDep.PublicRoutes(public)
 		dep.VenueDep.PublicRoutes(public)
 		dep.UserDep.PublicRoutes(public)
@@ -52,6 +54,7 @@ func NewHandler(dep RouterDep, config *config.Config, logger gin.HandlerFunc, au
 	private := api.Group("")
 	private.Use(auth.RequireAuth())
 	{
+		dep.BookingHandler.PrivateRoutes(private)
 		dep.EventDep.PrivateRoutes(private)
 		dep.VenueDep.PrivateRoutes(private)
 		dep.UserDep.PrivateRoutes(private)

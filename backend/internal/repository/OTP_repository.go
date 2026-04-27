@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/domain/otp"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -24,11 +25,12 @@ type OTPRepo interface {
 }
 
 type otpRepo struct {
-	db *mongo.Database
+	db  *mongo.Database
+	rdb *redis.Client
 }
 
-func NewOTPRepository(db *mongo.Database) OTPRepo {
-	return &otpRepo{db: db}
+func NewOTPRepository(db *mongo.Database, rdb *redis.Client) OTPRepo {
+	return &otpRepo{db: db, rdb: rdb}
 }
 
 func (otp *otpRepo) CreateOrReplace(ctx context.Context, ch otp.OTPChallenge) error {

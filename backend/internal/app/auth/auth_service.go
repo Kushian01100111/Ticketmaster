@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/Kushian01100111/Tickermaster/internal/app/email"
-	otpChallenge "github.com/Kushian01100111/Tickermaster/internal/app/otpChallange"
+	"github.com/Kushian01100111/Tickermaster/internal/app/otpChallenge"
 	"github.com/Kushian01100111/Tickermaster/internal/app/user"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/session"
 	u "github.com/Kushian01100111/Tickermaster/internal/domain/user"
