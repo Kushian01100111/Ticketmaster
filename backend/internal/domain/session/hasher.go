@@ -9,6 +9,7 @@ type PasswordHasher interface {
 
 type BcryptHasher struct{ Cost int }
 
+// Create a new BcryHasher instance
 func NewBcryptHasher(cost int) PasswordHasher {
 	if cost == 0 {
 		cost = bcrypt.DefaultCost
