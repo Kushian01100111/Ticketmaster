@@ -2,14 +2,12 @@ package mongodb
 
 import (
 	"context"
-	"time"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/Kushian01100111/Tickermaster/internal/domain/booking"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/event"
-	"github.com/Kushian01100111/Tickermaster/internal/domain/otp"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/session"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/ticket"
 	"github.com/Kushian01100111/Tickermaster/internal/domain/user"
@@ -23,17 +21,14 @@ func ConnectDB(dsn string, mongoDB string) (*mongo.Client, error) {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	err = conn.Ping(ctx, nil)
+	err = conn.Ping(context.Background(), nil)
 	if err != nil {
 		return nil, err
 	}
 
 	db := conn.Database(mongoDB)
 
-	err = ensureCollections(ctx, db)
+	err = ensureCollections(context.Background(), db)
 	if err != nil {
 		return nil, err
 	}
@@ -67,11 +62,6 @@ func UpdateCollections(ctx context.Context, db *mongo.Database) error {
 		return err
 	}
 
-	err = otp.UpdateOtpCollecion(ctx, db)
-	if err != nil {
-		return err
-	}
-
 	return venue.UpdateVenueCollection(ctx, db)
 }
 
@@ -97,11 +87,6 @@ func ensureCollections(ctx context.Context, db *mongo.Database) error {
 	}
 
 	err = session.EnsureSessionCollection(ctx, db)
-	if err != nil {
-		return err
-	}
-
-	err = otp.EnsureOtpCollection(ctx, db)
 	if err != nil {
 		return err
 	}

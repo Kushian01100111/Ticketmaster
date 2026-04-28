@@ -3,6 +3,7 @@ package redisDB
 import (
 	"context"
 
+	"github.com/Kushian01100111/Tickermaster/internal/domain/otp"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -27,5 +28,19 @@ func ConnectRDB(secrets RedisSecrets) (*redis.Client, error) {
 		return nil, err
 	}
 
+	err = ensureSchemas(ctx, rdb)
+	if err != nil {
+		return nil, err
+	}
+
 	return rdb, nil
+}
+
+func ensureSchemas(ctx context.Context, rdb *redis.Client) error {
+	err := otp.EnsureOTPRedis(ctx, rdb)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

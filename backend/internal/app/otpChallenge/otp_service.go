@@ -28,9 +28,9 @@ type OTPParams struct {
 
 type OTPService interface {
 	CreateOrReplace(ctx context.Context, ch OTPParams) error
-	GetActiveByEmail(ctx context.Context, email string, purpuse string) (*otp.OTPChallenge, error)
-	IncAttempts(ctx context.Context, email string) error
-	Consume(ctx context.Context, email string) error
+	GetActiveByEmail(ctx context.Context, email, purpuse string) (*otp.OTP, error)
+	IncAttempts(ctx context.Context, email, purpuse string) error
+	Consume(ctx context.Context, email, purpuse string) error
 }
 
 type otpService struct {
@@ -55,7 +55,7 @@ func (o *otpService) CreateOrReplace(ctx context.Context, ch OTPParams) error {
 		ch.CreatedAt = now
 	}
 
-	err := o.otpRepo.CreateOrReplace(ctx, otp.OTPChallenge{
+	err := o.otpRepo.CreateOrReplace(ctx, otp.OTP{
 		Email:     strings.ToLower(strings.TrimSpace(ch.Email)),
 		Purpuse:   ch.Purpuse,
 		CodeHash:  ch.CodeHash,
@@ -69,7 +69,7 @@ func (o *otpService) CreateOrReplace(ctx context.Context, ch OTPParams) error {
 
 	return nil
 }
-func (o *otpService) GetActiveByEmail(ctx context.Context, email string, purpuse string) (*otp.OTPChallenge, error) {
+func (o *otpService) GetActiveByEmail(ctx context.Context, email, purpuse string) (*otp.OTP, error) {
 	mail := strings.ToLower(strings.TrimSpace(email))
 	purpuse = strings.TrimSpace(purpuse)
 
@@ -84,23 +84,23 @@ func (o *otpService) GetActiveByEmail(ctx context.Context, email string, purpuse
 	return o.otpRepo.GetActiveByEmail(ctx, mail, purpuse)
 }
 
-func (o *otpService) IncAttempts(ctx context.Context, email string) error {
+func (o *otpService) IncAttempts(ctx context.Context, email, purpuse string) error {
 	mail := strings.ToLower(strings.TrimSpace(email))
 
 	if mail == "" {
 		return ErrEmailRequired
 	}
 
-	return o.otpRepo.IncAttempts(ctx, mail)
+	return o.otpRepo.IncAttempts(ctx, mail, purpuse)
 }
-func (o *otpService) Consume(ctx context.Context, email string) error {
+func (o *otpService) Consume(ctx context.Context, email, purpuse string) error {
 	mail := strings.ToLower(strings.TrimSpace(email))
 	if mail == "" {
 		return ErrEmailRequired
 	}
 
 	now := time.Now()
-	return o.otpRepo.Consume(ctx, mail, now)
+	return o.otpRepo.Consume(ctx, mail, purpuse, now)
 }
 
 //

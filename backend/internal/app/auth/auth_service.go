@@ -41,7 +41,8 @@ var (
 
 	ErrInvalidOTP     = errors.New("invalid OTP")
 	ErrEmptyOTP       = errors.New("empty otp Challenge")
-	ErrOTPNotFound    = errors.New("otp Challenge not found")
+	ErrOTP            = errors.New("some error happened while searching for the OTP challenge.")
+	ErrOTPNotFound    = errors.New("otp challenge was not found")
 	ErrOTPExpired     = errors.New("otp Challenge is expired")
 	ErrOTPInvalidCode = errors.New("invalid otp Challenge code")
 
@@ -104,7 +105,7 @@ type AuthConfig struct {
 }
 
 func NewAuthService(
-	otpRepo otpChallenge.OTPService,
+	otpSrv otpChallenge.OTPService,
 	authRepo repository.AuthRepository,
 	userRepo user.UserService,
 	mailer email.EmailSender,
@@ -122,7 +123,7 @@ func NewAuthService(
 		refreshTTL = 30 * 24 * time.Hour
 	}
 	return &authService{
-		otpSrv:     otpRepo,
+		otpSrv:     otpSrv,
 		authRepo:   authRepo,
 		userSrv:    userRepo,
 		mailer:     mailer,
@@ -354,7 +355,11 @@ func (s *authService) LoginVerify(ctx context.Context, params VerifyParams) (*Se
 
 func (s *authService) verifyAndConsumeOTP(ctx context.Context, email, code, purpuse string) error {
 	ch, err := s.otpSrv.GetActiveByEmail(ctx, email, purpuse)
-	if err != nil || ch == nil {
+	if err != nil {
+		return err
+	}
+
+	if ch == nil {
 		return ErrOTPNotFound
 	}
 
@@ -363,11 +368,11 @@ func (s *authService) verifyAndConsumeOTP(ctx context.Context, email, code, purp
 	}
 
 	if sha256Hex(code) != ch.CodeHash {
-		_ = s.otpSrv.IncAttempts(ctx, email)
+		_ = s.otpSrv.IncAttempts(ctx, email, purpuse)
 		return ErrOTPInvalidCode
 	}
 
-	_ = s.otpSrv.Consume(ctx, email)
+	_ = s.otpSrv.Consume(ctx, email, purpuse)
 	return nil
 }
 

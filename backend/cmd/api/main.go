@@ -54,7 +54,7 @@ func main() {
 
 	defer func() {
 		_ = db.Disconnect(context.Background())
-		_ = rdb.Conn().Close()
+		_ = rdb.Close()
 	}()
 
 	JWTManager, err := session.NewJWTManager(config.JWTSecrets)
@@ -73,7 +73,7 @@ func main() {
 
 	//Non-entities repositories
 	authRepo := repository.NewAuthRepository(db.Database(config.DB))
-	otpRepo := repository.NewOTPRepository(db.Database(config.DB), rdb)
+	otpRepo := repository.NewOTPRepository(rdb)
 	bookingRepo := repository.NewBookingRepo(rdb)
 	emailRepo := email.NewEmailSender(config.ResendAPIKey, config.EmailFrom)
 

@@ -3,11 +3,10 @@ package otp
 import (
 	"context"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"github.com/redis/go-redis/v9"
 )
 
+/*
 func otpSchema() bson.D {
 	purpuse := bson.D{
 		{Key: "bsonType", Value: "string"},
@@ -75,4 +74,55 @@ func EnsureOtpCollection(ctx context.Context, db *mongo.Database) error {
 	})
 
 	return err
+}
+
+*/
+
+func EnsureOTPRedis(ctx context.Context, rdb *redis.Client) error {
+	indeces, err := rdb.FT_List(ctx).Result()
+	if err != nil {
+		return err
+	}
+
+	exists := false
+	for _, idx := range indeces {
+		if idx == "idx:otp" {
+			exists = true
+			break
+		}
+	}
+
+	if !exists {
+		_, err := rdb.FTCreate(
+			ctx,
+			"idx:otp",
+			&redis.FTCreateOptions{
+				OnJSON: true,
+				Prefix: []interface{}{"otp"},
+			},
+
+			&redis.FieldSchema{
+				FieldName: "$.email",
+				As:        "email",
+				FieldType: redis.SearchFieldTypeTag,
+			},
+
+			&redis.FieldSchema{
+				FieldName: "$.purpuse",
+				As:        "purpuse",
+				FieldType: redis.SearchFieldTypeText,
+			},
+
+			&redis.FieldSchema{
+				FieldName: "$.expiresAt",
+				As:        "expiresAt",
+				FieldType: redis.SearchFieldTypeNumeric,
+			},
+		).Result()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
