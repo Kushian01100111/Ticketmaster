@@ -27,6 +27,11 @@ import (
 	redisDB "github.com/Kushian01100111/Tickermaster/internal/storage/redisdb"
 )
 
+/*
+	-> Idea sobre compras de tickets
+	Estado compartido entre compradores manejado de forma externa a Gin(debido al comportamiento de sync.Pools utilizadas dentro de gin es imposible conocer el estado de una llamada concurrente a otra en http) con holds temporales a traves del cache(redis) en donde todos los compradores comparten e interacturan sobre el mismo estado de la aplicación.
+*/
+
 func main() {
 	var db *mongo.Client
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
