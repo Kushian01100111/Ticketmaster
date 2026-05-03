@@ -31,7 +31,7 @@ func NewHandler(dep RouterDep, config *config.Config, logger gin.HandlerFunc, au
 
 	r.Use(cors.New(cors.Config{
 		AllowAllOrigins:  true,
-		AllowMethods:     []string{"GET", "PUT", "POST", "DELETE", "PATCH", "DELETE"},
+		AllowMethods:     []string{"GET", "PUT", "POST", "DELETE", "PATCH"},
 		AllowHeaders:     []string{"Content-type", "Accept", "Authorization", "Origin"},
 		ExposeHeaders:    []string{"Content-length"},
 		AllowCredentials: true,
