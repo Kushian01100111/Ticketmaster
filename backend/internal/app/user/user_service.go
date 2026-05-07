@@ -14,11 +14,11 @@ import (
 )
 
 var (
-	ErrEmailInvalid     = errors.New("invalid email type")
-	ErrPasswordRequired = errors.New("password is required")
-	ErrRole             = errors.New("invalid role type")
-	ErrAuthMethod       = errors.New("invalid authmethod")
-	ErrAuthMethodLen    = errors.New("invalid amount of authmethods")
+	ErrEmailInvalid     = errors.New("user-service: invalid email type")
+	ErrPasswordRequired = errors.New("user-service: password is required")
+	ErrRole             = errors.New("user-service: invalid role type")
+	ErrAuthMethod       = errors.New("user-service: invalid authmethod")
+	ErrAuthMethodLen    = errors.New("user-service: invalid amount of authmethods")
 )
 
 type UserParams struct {

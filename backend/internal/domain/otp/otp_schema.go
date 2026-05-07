@@ -6,7 +6,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-/*
+/* Old otp schema for persistance database
 func otpSchema() bson.D {
 	purpuse := bson.D{
 		{Key: "bsonType", Value: "string"},

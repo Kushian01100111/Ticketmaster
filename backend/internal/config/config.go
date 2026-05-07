@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	ErrJWTSecretEmpty = errors.New("jwt secret not loaded")
-	ErrTTLEmpty       = errors.New("TTL secret not loaded")
-	ErrSkewEmpty      = errors.New("clockskew secret not loaded")
-	ErrLoading        = errors.New("error loading")
+	ErrJWTSecretEmpty = errors.New("config: jwt secret not loaded")
+	ErrTTLEmpty       = errors.New("config: TTL secret not loaded")
+	ErrSkewEmpty      = errors.New("config: clockskew secret not loaded")
+	ErrLoading        = errors.New("config: error loading")
 )
 
 type Config struct {

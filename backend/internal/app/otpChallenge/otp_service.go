@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	ErrPurpuse           = errors.New("invalid purpuse type")
-	ErrEmailRequired     = errors.New("email is required")
-	ErrCodeHasRequired   = errors.New("codeHas is required")
-	ErrExpiredAtRequired = errors.New("expiredAt is required")
+	ErrPurpuse           = errors.New("otp-service: invalid purpuse type")
+	ErrEmailRequired     = errors.New("otp-service: email is required")
+	ErrCodeHasRequired   = errors.New("otp-service: codeHas is required")
+	ErrExpiredAtRequired = errors.New("otp-service: expiredAt is required")
 )
 
 type OTPParams struct {

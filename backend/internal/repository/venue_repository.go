@@ -10,10 +10,10 @@ import (
 )
 
 var (
-	ErrDuplicateV       = errors.New("venue is a already created")
-	ErrUpdateDuplicateV = errors.New("couldn't update venue because other venue has the same name or address")
-	ErrPassingID        = errors.New("unexpected id type")
-	ErrVenueNotFound    = errors.New("venue couldn't be found")
+	ErrDuplicateV       = errors.New("repository: venue is a already created")
+	ErrUpdateDuplicateV = errors.New("repository: couldn't update venue because other venue has the same name or address")
+	ErrPassingID        = errors.New("repository: unexpected id type")
+	ErrVenueNotFound    = errors.New("repository: venue couldn't be found")
 )
 
 type VenueRepository interface {

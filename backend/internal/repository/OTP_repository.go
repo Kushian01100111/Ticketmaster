@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	ErrInvalidOTP        = errors.New("expired or invalid challenge")
-	ErrChallengeNotFound = errors.New("challenge not found")
+	ErrInvalidOTP        = errors.New("repository: expired or invalid challenge")
+	ErrChallengeNotFound = errors.New("repository: challenge not found")
 )
 
 type OTPRepo interface {

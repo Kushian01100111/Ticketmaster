@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	ErrDuplicateS     = errors.New("session is already created")
-	ErrSessioNotFound = errors.New("session was not found")
+	ErrDuplicateS     = errors.New("repository: session is already created")
+	ErrSessioNotFound = errors.New("repository: session was not found")
 )
 
 type AuthRepository interface {

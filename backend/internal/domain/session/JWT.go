@@ -9,16 +9,16 @@ import (
 )
 
 var (
-	ErrAuthSecretRequired    = errors.New("jwt secret is required")
-	ErrAuthSecretEmpty       = errors.New("jwt secret can't be empty")
-	ErrAuthIssuerRequired    = errors.New("jwt issuer is required")
-	ErrAuthClock             = errors.New("jwt clock skew must be >= 0")
-	ErrAuthAccessTTLRequired = errors.New("jwt accessTTL is required")
-	ErrAuthUserRequired      = errors.New("userID is required")
-	ErrMissingToken          = errors.New("missing token")
-	ErrInvalidSignAlg        = errors.New("invalid signing algorithm")
-	ErrTokenExpired          = errors.New("token has expired")
-	ErrTokenNotValid         = errors.New("token is not valid")
+	ErrAuthSecretRequired    = errors.New("domain-session:jwt secret is required")
+	ErrAuthSecretEmpty       = errors.New("domain-session:jwt secret can't be empty")
+	ErrAuthIssuerRequired    = errors.New("domain-session:jwt issuer is required")
+	ErrAuthClock             = errors.New("domain-session:jwt clock skew must be >= 0")
+	ErrAuthAccessTTLRequired = errors.New("domain-session:jwt accessTTL is required")
+	ErrAuthUserRequired      = errors.New("domain-session:userID is required")
+	ErrMissingToken          = errors.New("domain-session:missing token")
+	ErrInvalidSignAlg        = errors.New("domain-session:invalid signing algorithm")
+	ErrTokenExpired          = errors.New("domain-session:token has expired")
+	ErrTokenNotValid         = errors.New("domain-session:token is not valid")
 )
 
 type JWTConfig struct {

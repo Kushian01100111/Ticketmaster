@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	ErrValidation    = errors.New("string validation error")
-	ErrSeatType      = errors.New("invalid seat type")
-	ErrCapacity      = errors.New("invalid capacity")
-	ErrProvidedID    = errors.New("provided id is not a valid objectID")
-	ErrProvidedMapID = errors.New("provided mapId is no a valid objectId")
+	ErrValidation    = errors.New("venue-service: string validation error")
+	ErrSeatType      = errors.New("venue-service: invalid seat type")
+	ErrCapacity      = errors.New("venue-service: invalid capacity")
+	ErrProvidedID    = errors.New("venue-service: provided id is not a valid objectID")
+	ErrProvidedMapID = errors.New("venue-service: provided mapId is no a valid objectId")
 )
 
 type VenueParams struct {

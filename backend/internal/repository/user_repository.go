@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	ErrDuplicateU   = errors.New("user is already created")
-	ErrUserNotFound = errors.New("user couldn't be found")
+	ErrDuplicateU   = errors.New("repository: user is already created")
+	ErrUserNotFound = errors.New("repository: user couldn't be found")
 )
 
 type UserRepository interface {
